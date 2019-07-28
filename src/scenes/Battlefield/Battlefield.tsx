@@ -4,7 +4,7 @@ import GridLayer from "./components/layers/GridLayer/GridLayer";
 import { GridPosition } from "./types/GridPosition";
 
 import "./Battlefield.styl";
-import CombatantLayer from "./components/layers/CombatantLayer/CombatantLayer";
+import CombatantLayer, { OnClickFunc } from "./components/layers/CombatantLayer/CombatantLayer";
 import { Combatant } from "./types/combatant";
 
 interface BattlefieldState {
@@ -33,7 +33,8 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         {
           color: "blue",
           name: "Player",
-          position: { x: 1, y: 2 }
+          position: { x: 1, y: 2 },
+          selected: true
         },
         {
           color: "green",
@@ -60,11 +61,14 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
       <div className="battle-field m-5">
         <Stage width={window.innerWidth} height={window.innerHeight}>
           <GridLayer positions={this.state.positions} />
-          <CombatantLayer combatants={this.state.combatants} />
+          <CombatantLayer combatants={this.state.combatants} onClick={this.combatantClicked}/>
         </Stage>
       </div>
     );
   }
+
+  combatantClicked = (combatant: Combatant): void =>
+    this.setState({combatants: [...this.state.combatants.map(c => ({...c, selected: combatant === c}))]});
 }
 
 export default Battlefield;
