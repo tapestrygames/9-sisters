@@ -1,8 +1,8 @@
 import * as React from "react";
-import { GridPosition } from "../../../../../types/GridPosition";
 import { Rect } from "react-konva";
+import { GridPosition } from "../../../../../types/GridPosition";
 
-const SQUARE_SIZE = 100;
+const SQUARE_SIZE = 80;
 
 export interface GridSquareProperties {
   square: GridPosition;
@@ -17,8 +17,8 @@ class GridSquare extends React.Component<GridSquareProperties, any> {
     this.state = {};
   }
 
-  render() {
-    const { row, col, square }: GridSquareProperties  = this.props;
+  public render() {
+    const { row, col, square }: GridSquareProperties = this.props;
     return (
       <Rect
         x={SQUARE_SIZE * col}

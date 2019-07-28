@@ -1,13 +1,9 @@
-import React, {Component} from 'react';
+import React, { Component } from "react";
 
 class MainMenu extends Component {
-    render() {
-        return (
-            <div>
-                9 sisters
-            </div>
-        );
-    }
+  public render() {
+    return <div className="m-3 ml-5 font-medium">9 sisters</div>;
+  }
 }
 
 export default MainMenu;

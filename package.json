@@ -16,11 +16,13 @@
     "react-router-dom": "latest",
     "react-scripts": "3.0.1",
     "stylus": "^0.54.5",
+    "tailwindcss": "^1.0.5",
     "typescript": "^3.5.3"
   },
   "scripts": {
-    "start": "react-scripts-with-stylus start src/main.styl",
-    "build": "react-scripts-with-stylus build src/main.styl",
+    "tailwind:css": "tailwind build src/css/tailwind.src.css -c  tailwind.js -o src/css/tailwind.css",
+    "start": "npm run tailwind:css && react-scripts start",
+    "build": "npm run tailwind:css && react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "storybook": "start-storybook -p 9009 -s public",
@@ -43,6 +45,9 @@
       "last 1 safari version"
     ]
   },
+  "lint-staged": {
+    "**/*.ts": "tslint"
+  },
   "devDependencies": {
     "@storybook/addon-actions": "^5.1.9",
     "@storybook/addon-links": "^5.1.9",
@@ -51,9 +56,16 @@
     "@types/react-redux": "^7.1.1",
     "@types/react-router-dom": "^4.3.4",
     "create-react-app-stylus": "^1.1.1",
+    "husky": "^3.0.1",
+    "lint-staged": "^9.2.1",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1",
     "tslint-react": "^4.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   }
 }
