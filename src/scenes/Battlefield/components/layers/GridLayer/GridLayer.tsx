@@ -1,6 +1,6 @@
 import * as React from "react";
-import { GridPosition } from "../../../types/GridPosition";
 import { Layer } from "react-konva";
+import { GridPosition } from "../../../types/GridPosition";
 import GridSquare from "./components/GridSguare/GridSquare";
 
 interface GridLayerProps {
@@ -14,11 +14,11 @@ class GridLayer extends React.Component<GridLayerProps, any> {
     this.state = {};
   }
 
-  render() {
+  public render() {
     return (
       <Layer>
         {this.props.positions.map((row, rowIndex) =>
-        row.map((col, colIndex) => (
+          row.map((col, colIndex) => (
             <GridSquare
               key={(rowIndex * 100 + colIndex).toString()}
               square={col}

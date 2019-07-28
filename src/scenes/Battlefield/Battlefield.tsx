@@ -16,8 +16,8 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   constructor(props: {}) {
     super(props);
 
-    const open: GridPosition = { open: true };
-    const closed: GridPosition = { open: false };
+    // const open: GridPosition = { open: true };
+    // const closed: GridPosition = { open: false };
 
     const layout: GridPosition[][] = [];
 
