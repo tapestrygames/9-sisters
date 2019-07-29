@@ -1,8 +1,8 @@
-import { Coord } from "../../../shared/types/coord";
+import { Position } from "../../../shared/types/coord";
 
 export interface Combatant {
   name: string;
-  position: Coord;
+  position: Position;
   color: string;
   selected?: boolean;
 }

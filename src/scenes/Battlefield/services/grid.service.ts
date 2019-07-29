@@ -1,5 +1,6 @@
 import PF, { DiagonalMovement } from "pathfinding";
 import { Coord, Position } from "../../../shared/types/coord";
+import { GridPosition } from "../types/GridPosition";
 
 export interface PathOptions {
   allowDiagonal?: boolean;
@@ -7,11 +8,23 @@ export interface PathOptions {
   compress?: boolean;
 }
 
+export interface ToPXOptions {
+  center?: boolean;
+}
+
 export class GridServiceClass {
   private readonly gridSize: number = 80;
 
-  public toPx(position: Position): Coord {
-    return { x: position.x * this.gridSize, y: position.y * this.gridSize };
+  public toPx(position: Position, options: ToPXOptions = {}): Coord {
+    let offset = 0;
+    if (options.center) {
+      offset = Math.trunc(this.gridSize / 2);
+    }
+
+    return {
+      x: position.x * this.gridSize + offset,
+      y: position.y * this.gridSize + offset
+    };
   }
 
   public toPosition(coord: Coord): Position {
@@ -41,7 +54,16 @@ export class GridServiceClass {
     if (options.compress) {
       path = PF.Util.compressPath(path);
     }
+
     return path.map((r: number[]) => ({ x: r[0], y: r[1] }));
+  }
+
+  public matrix(positions: GridPosition[][]) {
+    const matrix: number[][] = [];
+    for (const row of positions) {
+      matrix.push(row.map(c => (c.open ? 0 : 1)));
+    }
+    return matrix;
   }
 }
 
