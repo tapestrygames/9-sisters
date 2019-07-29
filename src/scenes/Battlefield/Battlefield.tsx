@@ -8,6 +8,7 @@ import CombatantLayer, { OnClickFunc } from "./components/layers/CombatantLayer/
 import { Combatant } from "./types/combatant";
 import MoveToArrowLayer from "./components/layers/MoveToArrowLayer/MoveToArrowLayer";
 import { GridService } from "./services/grid.service";
+import MovementRangeLayer from "./components/layers/MovementRangeLayer/MovementRangeLayer";
 
 export interface BattlefieldState {
   positions: GridPosition[][];
@@ -37,22 +38,26 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
           color: "blue",
           name: "Player",
           position: { x: 1, y: 2 },
-          selected: true
+          selected: true,
+          movement: 5,
         },
         {
           color: "green",
           name: "Troll",
-          position: { x: 5, y: 5 }
+          position: { x: 5, y: 5 },
+          movement: 2
         },
         {
           color: "red",
           name: "Imp",
-          position: { x: 9, y: 2 }
+          position: { x: 9, y: 2 },
+          movement: 8
         },
         {
           color: "grey",
           name: "Skeleton",
-          position: { x: 6, y: 7 }
+          position: { x: 6, y: 7 },
+          movement: 4
         }
       ],
       positions: layout
@@ -68,6 +73,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
       return (<div className="battle-field m-5">
         <Stage width={window.innerWidth} height={window.innerHeight}>
           <GridLayer positions={this.state.positions} onHover={this.squareHovered}/>
+          {selectedCombatant && <MovementRangeLayer matrix={matrix}  combatant={selectedCombatant}/>}
           {selectedCombatantPosition && <MoveToArrowLayer matrix={matrix} hoveredSquare={hoveredSquare} selectedSquare={selectedCombatantPosition}/>}
           <CombatantLayer combatants={this.state.combatants} onClick={this.combatantClicked}/>
         </Stage>

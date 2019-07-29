@@ -13,7 +13,7 @@ export interface ToPXOptions {
 }
 
 export class GridServiceClass {
-  private readonly gridSize: number = 80;
+  public readonly gridSize: number = 80;
 
   public toPx(position: Position, options: ToPXOptions = {}): Coord {
     let offset = 0;
@@ -64,6 +64,30 @@ export class GridServiceClass {
       matrix.push(row.map(c => (c.open ? 0 : 1)));
     }
     return matrix;
+  }
+
+  public reachableSquares(
+    matrix: number[][],
+    position: Position,
+    movement: number
+  ) {
+    const reachableSquares: Position[] = [];
+    matrix.map((row, rowIndex) =>
+      row.map((col, colIndex) => {
+        if (!col) {
+          if (
+            GridService.pathBetween(matrix, position, {
+              x: colIndex,
+              y: rowIndex
+            }).length <=
+            movement + 1
+          ) {
+            reachableSquares.push({ x: colIndex, y: rowIndex });
+          }
+        }
+      })
+    );
+    return reachableSquares;
   }
 }
 

@@ -5,4 +5,5 @@ export interface Combatant {
   position: Position;
   color: string;
   selected?: boolean;
+  movement: number;
 }
