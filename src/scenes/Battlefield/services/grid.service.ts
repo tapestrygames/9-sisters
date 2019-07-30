@@ -1,5 +1,8 @@
 import PF, { DiagonalMovement } from "pathfinding";
+
+import { R } from "../../../shared/services/R";
 import { Coord, Position } from "../../../shared/types/coord";
+import { Combatant } from "../types/combatant";
 import { GridPosition } from "../types/GridPosition";
 
 export interface PathOptions {
@@ -88,6 +91,40 @@ export class GridServiceClass {
       })
     );
     return reachableSquares;
+  }
+
+  public findOpenPosition(
+    layout: GridPosition[][],
+    combatants: Combatant[],
+    combatant: Combatant
+  ): Position {
+    const openPositions: Position[] = layout.reduce((r: Position[], v) => {
+      r.push(
+        ...v.reduce((rr: Position[], vv) => {
+          if (
+            vv.open &&
+            combatants.filter(
+              c =>
+                c.position.x === vv.position.x && c.position.y === vv.position.y
+            ).length === 0
+          ) {
+            rr.push(vv.position);
+          }
+          return rr;
+        }, [])
+      );
+      return r;
+    }, []);
+    for (let cnt = 0; cnt < 1000; cnt++) {
+      const pos = R.pick(openPositions);
+      if (
+        !combatant.startingPositionRule ||
+        combatant.startingPositionRule(pos)
+      ) {
+        return pos;
+      }
+    }
+    return { x: -1, y: -1 };
   }
 }
 

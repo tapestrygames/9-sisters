@@ -28,38 +28,56 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     for (let row = 0; row < 10; row++) {
       const r = [];
       for (let col = 0; col < 10; col++) {
-        r.push({ open: Math.random() <= 0.9 || (col === 1 && row === 2) });
+        r.push({ open: Math.random() <= 0.9 || (col === 1 && row === 2), position: {x: col, y: row} });
       }
       layout.push(r);
     }
+
+    const combatants : Combatant[] = [
+      {
+        color: "blue",
+        name: "Dhrami",
+        position: { x: -1, y: -1 },
+        selected: true,
+        movement: 5,
+        startingPositionRule: (position:Position) => position.y < 5
+      },
+      {
+        color: "yellow",
+        name: "Moire Caubelle",
+        position: { x: -1, y: -1 },
+        selected: true,
+        movement: 5,
+        startingPositionRule: (position:Position) => position.y < 5
+      },
+      {
+        color: "green",
+        name: "Troll",
+        position: { x: -1, y: -1 },
+        movement: 2,
+        startingPositionRule: (position:Position) => position.y >= 5
+      },
+      {
+        color: "red",
+        name: "Imp",
+        position: { x: -1, y: -1 },
+        movement: 8,
+        startingPositionRule: (position:Position) => position.y >= 5
+
+      },
+      {
+        color: "grey",
+        name: "Skeleton",
+        position: { x: -1, y: -1 },
+        movement: 4,
+        startingPositionRule: (position:Position) => position.y >= 5
+
+      }
+    ]
+    combatants.forEach(combatant => combatant.position = GridService.findOpenPosition(layout, combatants, combatant));
+
     this.state = {
-      combatants: [
-        {
-          color: "blue",
-          name: "Player",
-          position: { x: 1, y: 2 },
-          selected: true,
-          movement: 5,
-        },
-        {
-          color: "green",
-          name: "Troll",
-          position: { x: 5, y: 5 },
-          movement: 2
-        },
-        {
-          color: "red",
-          name: "Imp",
-          position: { x: 9, y: 2 },
-          movement: 8
-        },
-        {
-          color: "grey",
-          name: "Skeleton",
-          position: { x: 6, y: 7 },
-          movement: 4
-        }
-      ],
+      combatants: combatants,
       positions: layout
     };
   }
