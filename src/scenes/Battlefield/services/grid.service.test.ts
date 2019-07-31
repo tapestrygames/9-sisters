@@ -32,15 +32,27 @@ describe("grid service", () => {
   describe("matrix", () => {
     it("should convert GridPositions to a matrix", () => {
       const gp: GridPosition[][] = [
-        [{ open: true }, { open: true }, { open: true }],
-        [{ open: true }, { open: false }, { open: true }],
-        [{ open: true }, { open: true }, { open: true }]
+        [
+          { open: true, position: { x: 0, y: 0 } },
+          { open: true, position: { x: 0, y: 0 } },
+          { open: true, position: { x: 0, y: 0 } }
+        ],
+        [
+          { open: true, position: { x: 0, y: 0 } },
+          { open: false, position: { x: 0, y: 0 } },
+          { open: true, position: { x: 0, y: 0 } }
+        ],
+        [
+          { open: true, position: { x: 0, y: 0 } },
+          { open: true, position: { x: 0, y: 0 } },
+          { open: true, position: { x: 0, y: 0 } }
+        ]
       ];
 
       expect(GridService.matrix(gp)).to.deep.equal([
-        [1, 1, 1],
-        [1, 0, 1],
-        [1, 1, 1]
+        [0, 0, 0],
+        [0, 1, 0],
+        [0, 0, 0]
       ]);
     });
   });
