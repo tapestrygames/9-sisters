@@ -11,6 +11,7 @@ import { GridService } from "./services/grid.service";
 import { CombatAction, CombatActionType } from "./types/CombatAction";
 import { Combatant, Faction } from "./types/combatant";
 import { GridPosition } from "./types/GridPosition";
+import { R } from "../../shared/services/R";
 
 const COMBAT_ACTION_DELAY = 300;
 export enum Phase {
@@ -334,12 +335,30 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     });
   };
 
+  private randomMovement = (combatant: Combatant) => {
+    const { combatants, positions }: BattlefieldState = this.state;
+    const matrix = GridService.matrix(positions);
+
+    const possibleSquares : Position[] = GridService.reachableSquares(matrix, combatant.position, combatant.movementRate);
+
+    const res = GridService.pathBetween(matrix, combatant.position, R.pick<Position>(possibleSquares) as Position);
+
+    return res;
+  }
+
   private enemyActions = () => {
+    const { combatants }: BattlefieldState = this.state;
+
     this.setState({
       hoveredSquare: undefined,
-      phase: Phase.RESOLUTION
-    });
-    this.resolution();
+      phase: Phase.RESOLUTION,
+      combatants: [
+        ...combatants.map((c: Combatant) => ({
+          ...c,
+          currentPath: c.faction === Faction.ENEMY ? this.randomMovement(c) : c.currentPath
+        }))
+      ],
+    }, () => {this.resolution()});
   };
 
   private resolution = () => {
@@ -357,7 +376,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
           });
         });
       });
-
+    console.log(actionQueue)
     setTimeout(
       () => this.drainCombatQueue(this, actionQueue),
       COMBAT_ACTION_DELAY
