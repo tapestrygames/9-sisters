@@ -13,4 +13,4 @@ phases:
       - yarn build
   post_build:
     commands:
-      - aws s3 sync --delete . "s3://9-sister-react-app"
+      - aws s3 sync --delete build/ "s3://9-sister-react-app"
