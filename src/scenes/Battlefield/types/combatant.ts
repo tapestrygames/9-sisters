@@ -13,6 +13,7 @@ export interface Combatant {
   position: Position;
   color: string;
   selected?: boolean;
-  movement: number;
+  movementRate: number;
   startingPositionRule?: PositionRuleFunc;
+  currentPath?: Position[];
 }

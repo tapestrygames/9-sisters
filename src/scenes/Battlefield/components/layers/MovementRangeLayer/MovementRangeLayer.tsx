@@ -18,9 +18,9 @@ class MovementRangeLayer extends React.Component<MovementRangeLayerProps, any> {
 
   public render() {
     const {matrix, combatant} : MovementRangeLayerProps = this.props;
-    const reachableSquares = GridService.reachableSquares(matrix, combatant.position, combatant.movement)
+    const reachableSquares = GridService.reachableSquares(matrix, combatant.position, combatant.movementRate)
       .map((s: Position) => GridService.toPx(s));
-    console.log(reachableSquares);
+
     return (
       <Layer>
         {reachableSquares.map((square: any, i) =>

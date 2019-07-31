@@ -4,11 +4,13 @@ import { GridPosition } from "../../../types/GridPosition";
 import GridSquare from "./components/GridSguare/GridSquare";
 import { Position} from "../../../../../shared/types/coord";
 
-export type OnHoverFunc = (position?:Position) => void;
+export type OnHoverFunc = (position:Position) => void;
+export type OnClickFunc = (position:Position) => void;
 
 interface GridLayerProps {
   positions: GridPosition[][];
   onHover?: OnHoverFunc;
+  onClick?: OnClickFunc;
 }
 
 class GridLayer extends React.Component<GridLayerProps, any> {
@@ -19,7 +21,7 @@ class GridLayer extends React.Component<GridLayerProps, any> {
   }
 
   public render() {
-    const { onHover, positions}: GridLayerProps = this.props;
+    const { onHover, onClick, positions}: GridLayerProps = this.props;
     return (
       <Layer>
         {positions.map((row, rowIndex) =>
@@ -29,7 +31,8 @@ class GridLayer extends React.Component<GridLayerProps, any> {
               square={col}
               row={rowIndex}
               col={colIndex}
-              onHover={() => {if (onHover) onHover({x: colIndex, y: rowIndex})}}
+              onClick={() => {if (onClick) { onClick({x: colIndex, y:rowIndex})}}}
+              onHover={() => {if (onHover) { onHover({x: colIndex, y: rowIndex})}}}
             />
           ))
         )}
