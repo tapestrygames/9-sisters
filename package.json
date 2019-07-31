@@ -27,7 +27,8 @@
     "storybook": "start-storybook -p 9009 -s public",
     "build-storybook": "build-storybook -s public",
     "tslint-check": "tslint-config-prettier-check ./tslint.json",
-    "lint": "tslint -c tslint.json src/**/*.{ts,tsx} --fix --format verbose"
+    "lint": "tslint -c tslint.json src/**/*.{ts,tsx} --fix --format verbose",
+    "deploy": "aws s3 sync build/ s3://9-sister-react-app --acl public-read"
   },
   "eslintConfig": {
     "extends": "react-app"
