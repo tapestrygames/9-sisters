@@ -75,8 +75,8 @@ export class GridServiceClass {
     movement: number
   ) {
     const reachableSquares: Position[] = [];
-    matrix.map((row, rowIndex) =>
-      row.map((col, colIndex) => {
+    matrix.forEach((row, rowIndex) =>
+      row.forEach((col, colIndex) => {
         if (!col) {
           if (
             GridService.pathBetween(matrix, position, {

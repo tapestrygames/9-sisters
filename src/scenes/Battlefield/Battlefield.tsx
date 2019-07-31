@@ -139,8 +139,8 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     const matrix = GridService.matrix(positions);
 
     return (
-      <div className="battle-field m-5">
-        <Stage width={window.innerWidth} height={window.innerHeight - 100}>
+      <div className="battle-field m-5 flex flex-row">
+        <Stage width={window.innerWidth-200} height={window.innerHeight}>
           <GridLayer
             positions={this.state.positions}
             onHover={this.squareHovered}
@@ -165,15 +165,15 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
             onClick={this.combatantClicked}
           />
         </Stage>
-        <div className="flex flex-row">
+        <div className="flex flex-col">
           <button
             className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
             onClick={() => this.completePlayerActions()}
           >
             Go
           </button>
-          <div className="pl-3">
-            {this.phaseLabels[phase]} {turn}
+          <div>
+            Turn: {turn}
           </div>
         </div>
       </div>
@@ -183,7 +183,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   public drainCombatQueue = (component: Battlefield, queue: CombatAction[]) => {
     const { combatants } = component.state;
 
-    if (queue.length == 0) {
+    if (queue.length === 0) {
       // next phase
       this.setState({
         phase: Phase.CLEANUP

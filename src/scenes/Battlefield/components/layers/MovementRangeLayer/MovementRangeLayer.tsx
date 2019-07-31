@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Layer, Arrow, Rect } from "react-konva";
+import { Layer, Rect } from "react-konva";
 import { GridService } from "../../../services/grid.service";
 import { Position} from "../../../../../shared/types/coord";
 import { Combatant } from "../../../types/combatant";
