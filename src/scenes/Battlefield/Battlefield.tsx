@@ -4,10 +4,8 @@ import GridLayer from "./components/layers/GridLayer/GridLayer";
 import { GridPosition } from "./types/GridPosition";
 import { Position } from "../../shared/types/coord";
 import "./Battlefield.styl";
-import CombatantLayer, {
-  OnClickFunc
-} from "./components/layers/CombatantLayer/CombatantLayer";
-import { Combatant } from "./types/combatant";
+import CombatantLayer from "./components/layers/CombatantLayer/CombatantLayer";
+import { Combatant, Faction } from "./types/combatant";
 import MoveToArrowLayer from "./components/layers/MoveToArrowLayer/MoveToArrowLayer";
 import { GridService } from "./services/grid.service";
 import MovementRangeLayer from "./components/layers/MovementRangeLayer/MovementRangeLayer";
@@ -57,6 +55,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
 
     const combatants: Combatant[] = [
       {
+        faction: Faction.PLAYER,
         color: "blue",
         name: "Dhrami",
         position: { x: -1, y: -1 },
@@ -65,6 +64,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         startingPositionRule: (position: Position) => position.y < 5
       },
       {
+        faction: Faction.PLAYER,
         color: "yellow",
         name: "Moire Caubelle",
         position: { x: -1, y: -1 },
@@ -73,6 +73,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         startingPositionRule: (position: Position) => position.y < 5
       },
       {
+        faction: Faction.ENEMY,
         color: "green",
         name: "Troll",
         position: { x: -1, y: -1 },
@@ -80,6 +81,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         startingPositionRule: (position: Position) => position.y >= 5
       },
       {
+        faction: Faction.ENEMY,
         color: "red",
         name: "Imp",
         position: { x: -1, y: -1 },
@@ -87,6 +89,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         startingPositionRule: (position: Position) => position.y >= 5
       },
       {
+        faction: Faction.ENEMY,
         color: "grey",
         name: "Skeleton",
         position: { x: -1, y: -1 },
