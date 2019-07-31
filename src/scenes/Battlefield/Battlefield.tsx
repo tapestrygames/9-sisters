@@ -1,16 +1,18 @@
 import * as React from "react";
 import { Stage } from "react-konva";
-import GridLayer from "./components/layers/GridLayer/GridLayer";
-import { GridPosition } from "./types/GridPosition";
 import { Position } from "../../shared/types/coord";
 import "./Battlefield.styl";
+import ChosenPathsLayer from "./components/layers/ChosenPathsLayer/ChosenPathsLayer";
 import CombatantLayer from "./components/layers/CombatantLayer/CombatantLayer";
-import { Combatant, Faction } from "./types/combatant";
+import GridLayer from "./components/layers/GridLayer/GridLayer";
+import MovementRangeLayer from "./components/layers/MovementRangeLayer/MovementRangeLayer";
 import MoveToArrowLayer from "./components/layers/MoveToArrowLayer/MoveToArrowLayer";
 import { GridService } from "./services/grid.service";
-import MovementRangeLayer from "./components/layers/MovementRangeLayer/MovementRangeLayer";
-import ChosenPathsLayer from "./components/layers/ChosenPathsLayer/ChosenPathsLayer";
+import { CombatAction, CombatActionType } from "./types/CombatAction";
+import { Combatant, Faction } from "./types/combatant";
+import { GridPosition } from "./types/GridPosition";
 
+const COMBAT_ACTION_DELAY = 300;
 export enum Phase {
   INIT,
   PLAYER_ACTIONS,
@@ -57,44 +59,44 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
 
     const combatants: Combatant[] = [
       {
-        faction: Faction.PLAYER,
         color: "blue",
+        faction: Faction.PLAYER,
+        movementRate: 5,
         name: "Dhrami",
         position: { x: -1, y: -1 },
         selected: true,
-        movementRate: 5,
         startingPositionRule: (position: Position) => position.y < 5
       },
       {
-        faction: Faction.PLAYER,
         color: "yellow",
+        faction: Faction.PLAYER,
+        movementRate: 5,
         name: "Moire Caubelle",
         position: { x: -1, y: -1 },
-        movementRate: 5,
         startingPositionRule: (position: Position) => position.y < 5
       },
       {
-        faction: Faction.ENEMY,
         color: "green",
+        faction: Faction.ENEMY,
+        movementRate: 2,
         name: "Troll",
         position: { x: -1, y: -1 },
-        movementRate: 2,
         startingPositionRule: (position: Position) => position.y >= 5
       },
       {
-        faction: Faction.ENEMY,
         color: "red",
+        faction: Faction.ENEMY,
+        movementRate: 8,
         name: "Imp",
         position: { x: -1, y: -1 },
-        movementRate: 8,
         startingPositionRule: (position: Position) => position.y >= 5
       },
       {
-        faction: Faction.ENEMY,
         color: "grey",
+        faction: Faction.ENEMY,
+        movementRate: 4,
         name: "Skeleton",
         position: { x: -1, y: -1 },
-        movementRate: 4,
         startingPositionRule: (position: Position) => position.y >= 5
       }
     ];
@@ -108,11 +110,15 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     );
 
     this.state = {
-      combatants: combatants,
+      combatants,
+      phase: Phase.INIT,
       positions: layout,
-      turn: 1,
-      phase: Phase.INIT
+      turn: 1
     };
+  }
+
+  public componentDidMount(): void {
+    this.init();
   }
 
   public render() {
@@ -143,7 +149,9 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
           {selectedCombatant && (
             <MovementRangeLayer matrix={matrix} combatant={selectedCombatant} />
           )}
-          <ChosenPathsLayer combatants={combatants} />
+          {phase === Phase.PLAYER_ACTIONS && (
+            <ChosenPathsLayer combatants={combatants} />
+          )}
           {selectedCombatantPosition && (
             <MoveToArrowLayer
               matrix={matrix}
@@ -158,7 +166,12 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
           />
         </Stage>
         <div className="flex flex-row">
-          <button onClick={() => this.nextPhase()}>Next Phase</button>
+          <button
+            className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+            onClick={() => this.completePlayerActions()}
+          >
+            Go
+          </button>
           <div className="pl-3">
             {this.phaseLabels[phase]} {turn}
           </div>
@@ -167,30 +180,55 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     );
   }
 
-  nextPhase = () => {
-    const nextCombatant = this.firstCombatant(
-      (c: Combatant) => c.faction === Faction.PLAYER
+  public drainCombatQueue = (component: Battlefield, queue: CombatAction[]) => {
+    const { combatants } = component.state;
+
+    if (queue.length == 0) {
+      // next phase
+      this.setState({
+        phase: Phase.CLEANUP
+      });
+      component.cleanup();
+      return;
+    }
+
+    const action: CombatAction = queue.shift() as CombatAction;
+
+    switch (action.action) {
+      case CombatActionType.MOVE:
+        component.setState({
+          combatants: [
+            ...combatants.map((c: Combatant) => ({
+              ...c,
+              position:
+                c.name === action.combatant.name
+                  ? (action.to as Position)
+                  : c.position
+            }))
+          ]
+        });
+    }
+
+    setTimeout(
+      () => this.drainCombatQueue(component, queue),
+      COMBAT_ACTION_DELAY
     );
-    this.setState({
-      phase: this.state.phase === 4 ? 0 : this.state.phase + 1,
-      turn: this.state.phase === 4 ? this.state.turn + 1 : this.state.turn,
-      hoveredSquare: undefined,
-      combatants: [
-        ...this.state.combatants.map(c => ({
-          ...c,
-          currentPath: undefined,
-          selected: c.name === (nextCombatant as Combatant).name
-        }))
-      ]
-    });
   };
 
-  selectedCombatant = () => {
+  public completePlayerActions = () => {
+    this.setState({
+      phase: Phase.ENEMY_ACTIONS
+    });
+
+    this.enemyActions();
+  };
+
+  public selectedCombatant = () => {
     const combatants = this.state.combatants.filter(c => c.selected);
     return combatants.length > 0 ? combatants[0] : null;
   };
 
-  nextCombatant = (test?: (c: Combatant) => boolean) => {
+  public nextCombatant = (test?: (c: Combatant) => boolean) => {
     const combatants = this.state.combatants.filter(
       c => !c.selected && (!test || test(c))
     );
@@ -201,7 +239,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     return combatants[0];
   };
 
-  firstCombatant = (test?: (c: Combatant) => boolean) => {
+  public firstCombatant = (test?: (c: Combatant) => boolean) => {
     const combatants = this.state.combatants.filter(c => !test || test(c));
     if (!combatants.length) {
       return null;
@@ -210,7 +248,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     return combatants[0];
   };
 
-  squareClicked = (position: Position): void => {
+  public squareClicked = (position: Position): void => {
     if (this.state.phase !== Phase.PLAYER_ACTIONS) {
       return;
     }
@@ -226,20 +264,19 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
       const nextCombatant = this.nextCombatant(
         c => c.faction === Faction.PLAYER && !c.currentPath
       );
-      console.log(combatant.name, nextCombatant ? nextCombatant.name : "none");
       this.setState({
         combatants: [
           ...this.state.combatants.map(c => ({
             ...c,
-            selected: !!(nextCombatant && nextCombatant.name === c.name),
-            currentPath: c.name === combatant.name ? path : c.currentPath
+            currentPath: c.name === combatant.name ? path : c.currentPath,
+            selected: !!(nextCombatant && nextCombatant.name === c.name)
           }))
         ]
       });
     }
   };
 
-  squareHovered = (position?: Position): void => {
+  public squareHovered = (position?: Position): void => {
     if (this.state.phase !== Phase.PLAYER_ACTIONS) {
       return;
     }
@@ -248,7 +285,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     });
   };
 
-  combatantClicked = (combatant: Combatant): void => {
+  public combatantClicked = (combatant: Combatant): void => {
     if (this.state.phase !== Phase.PLAYER_ACTIONS) {
       return;
     }
@@ -257,12 +294,74 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
       combatants: [
         ...this.state.combatants.map(c => ({
           ...c,
+          currentPath: c.name === combatant.name ? undefined : c.currentPath,
           selected:
-            combatant === c && c.faction === Faction.PLAYER ? true : c.selected,
-          currentPath: c.name === combatant.name ? undefined : c.currentPath
+            combatant === c && c.faction === Faction.PLAYER ? true : c.selected
         }))
       ]
     });
+  };
+
+  private cleanup = () => {
+    const { combatants }: BattlefieldState = this.state;
+
+    this.setState({
+      combatants: [
+        ...combatants.map((c: Combatant) => ({
+          ...c,
+          currentPath: undefined
+        }))
+      ],
+      phase: Phase.INIT,
+      turn: this.state.turn + 1
+    });
+    this.init();
+  };
+
+  private init = () => {
+    const { combatants }: BattlefieldState = this.state;
+    const combatant: Combatant = this.firstCombatant(
+      (c: Combatant) => c.faction === Faction.PLAYER
+    ) as Combatant;
+    this.setState({
+      combatants: [
+        ...combatants.map((c: Combatant) => ({
+          ...c,
+          selected: c.name === combatant.name
+        }))
+      ],
+      phase: Phase.PLAYER_ACTIONS
+    });
+  };
+
+  private enemyActions = () => {
+    this.setState({
+      hoveredSquare: undefined,
+      phase: Phase.RESOLUTION
+    });
+    this.resolution();
+  };
+
+  private resolution = () => {
+    const { combatants }: BattlefieldState = this.state;
+    const actionQueue: CombatAction[] = [];
+
+    combatants
+      .filter((c: Combatant) => c.currentPath)
+      .forEach((combatant: Combatant) => {
+        (combatant.currentPath as Position[]).forEach((pos: Position) => {
+          actionQueue.push({
+            action: CombatActionType.MOVE,
+            combatant,
+            to: pos
+          });
+        });
+      });
+
+    setTimeout(
+      () => this.drainCombatQueue(this, actionQueue),
+      COMBAT_ACTION_DELAY
+    );
   };
 }
 

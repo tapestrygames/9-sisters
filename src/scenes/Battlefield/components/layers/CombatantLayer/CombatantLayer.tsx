@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Circle, Layer } from "react-konva";
 import { Combatant } from "../../../types/combatant";
+//import { Motion, spring } from "react-motion";
 
 export type OnClickFunc = (combatant: Combatant) => void;
 
@@ -26,10 +27,12 @@ class CombatantLayer extends React.Component<CombatantLayerProps, any> {
     return (
       <Layer>
         {this.props.combatants.map((combatant: Combatant) => (
-          <Circle
+         // <Motion style={{x: spring(combatant.position.x*80+40),y: spring(combatant.position.y*80+40)}}>
+         //   {({x, y}) =>
+              <Circle
             key={combatant.name}
-            x={combatant.position.x * 80 + 40}
-            y={combatant.position.y * 80 + 40}
+            x={combatant.position.x*80+40}
+            y={combatant.position.y*80+40}
             radius={30}
             fill={combatant.color}
             stroke="black"
@@ -39,7 +42,9 @@ class CombatantLayer extends React.Component<CombatantLayerProps, any> {
             shadowOffsetY={5}
             strokeWidth={combatant.selected ? 5 : 1}
             onClick={() => this.clickHandler(combatant)}
-          />
+            />
+        //}
+        //  </Motion>
         ))}
       </Layer>
     );
