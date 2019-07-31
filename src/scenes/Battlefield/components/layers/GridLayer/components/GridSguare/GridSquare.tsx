@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Rect } from "react-konva";
 import { GridPosition } from "../../../../../types/GridPosition";
-import { OnHoverFunc } from "../../GridLayer";
 
 const SQUARE_SIZE = 80;
 
@@ -9,7 +8,8 @@ export interface GridSquareProperties {
   square: GridPosition;
   row: number;
   col: number;
-  onHover?: OnHoverFunc
+  onHover?: () => void;
+  onClick?: () => void;
 }
 
 class GridSquare extends React.Component<GridSquareProperties, any> {
@@ -20,7 +20,7 @@ class GridSquare extends React.Component<GridSquareProperties, any> {
   }
 
   public render() {
-    const { row, col, square, onHover }: GridSquareProperties = this.props;
+    const { row, col, square, onHover, onClick }: GridSquareProperties = this.props;
     return <Rect
       x={SQUARE_SIZE * col}
       y={SQUARE_SIZE * row}
@@ -28,7 +28,8 @@ class GridSquare extends React.Component<GridSquareProperties, any> {
       height={SQUARE_SIZE}
       stroke="black"
       fill={!square.open ? "black" : "#daddde"}
-      onMouseOver={() => {if (onHover) onHover()}}
+      onMouseOver={() => {if (onHover) {onHover()}}}
+      onClick={() => {if (onClick) {onClick()}}}
     />;
   }
 }

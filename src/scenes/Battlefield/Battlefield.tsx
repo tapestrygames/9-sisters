@@ -9,6 +9,7 @@ import { Combatant, Faction } from "./types/combatant";
 import MoveToArrowLayer from "./components/layers/MoveToArrowLayer/MoveToArrowLayer";
 import { GridService } from "./services/grid.service";
 import MovementRangeLayer from "./components/layers/MovementRangeLayer/MovementRangeLayer";
+import ChosenPathsLayer from "./components/layers/ChosenPathsLayer/ChosenPathsLayer";
 
 export enum Phase {
   INIT,
@@ -34,6 +35,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     "Resolution",
     "Cleanup"
   ];
+
   constructor(props: {}) {
     super(props);
 
@@ -60,7 +62,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         name: "Dhrami",
         position: { x: -1, y: -1 },
         selected: true,
-        movement: 5,
+        movementRate: 5,
         startingPositionRule: (position: Position) => position.y < 5
       },
       {
@@ -68,8 +70,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         color: "yellow",
         name: "Moire Caubelle",
         position: { x: -1, y: -1 },
-        selected: true,
-        movement: 5,
+        movementRate: 5,
         startingPositionRule: (position: Position) => position.y < 5
       },
       {
@@ -77,7 +78,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         color: "green",
         name: "Troll",
         position: { x: -1, y: -1 },
-        movement: 2,
+        movementRate: 2,
         startingPositionRule: (position: Position) => position.y >= 5
       },
       {
@@ -85,7 +86,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         color: "red",
         name: "Imp",
         position: { x: -1, y: -1 },
-        movement: 8,
+        movementRate: 8,
         startingPositionRule: (position: Position) => position.y >= 5
       },
       {
@@ -93,7 +94,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         color: "grey",
         name: "Skeleton",
         position: { x: -1, y: -1 },
-        movement: 4,
+        movementRate: 4,
         startingPositionRule: (position: Position) => position.y >= 5
       }
     ];
@@ -130,17 +131,19 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
       ? selectedCombatant.position
       : null;
     const matrix = GridService.matrix(positions);
-    console.log("rendering bf", hoveredSquare, selectedCombatantPosition);
+
     return (
       <div className="battle-field m-5">
         <Stage width={window.innerWidth} height={window.innerHeight - 100}>
           <GridLayer
             positions={this.state.positions}
             onHover={this.squareHovered}
+            onClick={this.squareClicked}
           />
           {selectedCombatant && (
             <MovementRangeLayer matrix={matrix} combatant={selectedCombatant} />
           )}
+          <ChosenPathsLayer combatants={combatants} />
           {selectedCombatantPosition && (
             <MoveToArrowLayer
               matrix={matrix}
@@ -164,21 +167,102 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   }
 
   nextPhase = () => {
+    const nextCombatant = this.firstCombatant(
+      (c: Combatant) => c.faction === Faction.PLAYER
+    );
     this.setState({
       phase: this.state.phase === 4 ? 0 : this.state.phase + 1,
-      turn: this.state.phase === 4 ? this.state.turn + 1 : this.state.turn
+      turn: this.state.phase === 4 ? this.state.turn + 1 : this.state.turn,
+      hoveredSquare: undefined,
+      combatants: [
+        ...this.state.combatants.map(c => ({
+          ...c,
+          currentPath: undefined,
+          selected: c.name === (nextCombatant as Combatant).name
+        }))
+      ]
     });
   };
 
-  squareHovered = (position?: Position): void =>
-    this.setState({ hoveredSquare: position });
+  selectedCombatant = () => {
+    const combatants = this.state.combatants.filter(c => c.selected);
+    return combatants.length > 0 ? combatants[0] : null;
+  };
 
-  combatantClicked = (combatant: Combatant): void =>
-    this.setState({
+  nextCombatant = (test?: (c: Combatant) => boolean) => {
+    const combatants = this.state.combatants.filter(
+      c => !c.selected && (!test || test(c))
+    );
+    if (!combatants.length) {
+      return null;
+    }
+
+    return combatants[0];
+  };
+
+  firstCombatant = (test?: (c: Combatant) => boolean) => {
+    const combatants = this.state.combatants.filter(c => !test || test(c));
+    if (!combatants.length) {
+      return null;
+    }
+
+    return combatants[0];
+  };
+
+  squareClicked = (position: Position): void => {
+    if (this.state.phase !== Phase.PLAYER_ACTIONS) {
+      return;
+    }
+
+    const combatant = this.selectedCombatant();
+    if (combatant) {
+      const matrix = GridService.matrix(this.state.positions);
+      const path = GridService.pathBetween(
+        matrix,
+        combatant.position,
+        position
+      );
+      const nextCombatant = this.nextCombatant(
+        c => c.faction === Faction.PLAYER && !c.currentPath
+      );
+      console.log(combatant.name, nextCombatant ? nextCombatant.name : "none");
+      this.setState({
+        combatants: [
+          ...this.state.combatants.map(c => ({
+            ...c,
+            selected: !!(nextCombatant && nextCombatant.name === c.name),
+            currentPath: c.name === combatant.name ? path : c.currentPath
+          }))
+        ]
+      });
+    }
+  };
+
+  squareHovered = (position?: Position): void => {
+    if (this.state.phase !== Phase.PLAYER_ACTIONS) {
+      return;
+    }
+    return this.setState({
+      hoveredSquare: position
+    });
+  };
+
+  combatantClicked = (combatant: Combatant): void => {
+    if (this.state.phase !== Phase.PLAYER_ACTIONS) {
+      return;
+    }
+
+    return this.setState({
       combatants: [
-        ...this.state.combatants.map(c => ({ ...c, selected: combatant === c }))
+        ...this.state.combatants.map(c => ({
+          ...c,
+          selected:
+            combatant === c && c.faction === Faction.PLAYER ? true : c.selected,
+          currentPath: c.name === combatant.name ? undefined : c.currentPath
+        }))
       ]
     });
+  };
 }
 
 export default Battlefield;
