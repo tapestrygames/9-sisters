@@ -149,6 +149,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
               matrix={matrix}
               hoveredSquare={hoveredSquare}
               selectedSquare={selectedCombatantPosition}
+              combatant={selectedCombatant || undefined}
             />
           )}
           <CombatantLayer

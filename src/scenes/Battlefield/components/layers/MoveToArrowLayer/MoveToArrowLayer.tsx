@@ -2,10 +2,12 @@ import * as React from "react";
 import { Layer, Arrow } from "react-konva";
 import { GridService } from "../../../services/grid.service";
 import { Position } from "../../../../../shared/types/coord";
+import { Combatant } from "../../../types/combatant";
 
 export interface MoveToArrowLayerProps {
   hoveredSquare?: Position;
   selectedSquare?: Position;
+  combatant?: Combatant;
   matrix: number[][];
 }
 
@@ -20,7 +22,8 @@ class MoveToArrowLayer extends React.Component<MoveToArrowLayerProps, any> {
     const {
       matrix,
       selectedSquare,
-      hoveredSquare
+      hoveredSquare,
+      combatant
     }: MoveToArrowLayerProps = this.props;
     const points =
       selectedSquare && hoveredSquare
@@ -38,7 +41,7 @@ class MoveToArrowLayer extends React.Component<MoveToArrowLayerProps, any> {
         : null;
     return (
       <Layer>
-        {points && (
+        {points && combatant && points.length <= (combatant.movementRate + 1)*2 && (
           <Arrow
             points={points}
             stroke="black"
