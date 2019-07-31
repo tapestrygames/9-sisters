@@ -44,6 +44,7 @@ class MoveToArrowLayer extends React.Component<MoveToArrowLayerProps, any> {
             stroke="black"
             strokeWidth={4}
             lineJoin={"round"}
+            listening={false}
           />
         )}
       </Layer>

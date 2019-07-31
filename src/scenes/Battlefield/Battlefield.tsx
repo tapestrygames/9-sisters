@@ -167,11 +167,19 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   }
 
   nextPhase = () => {
+    const nextCombatant = this.firstCombatant(
+      (c: Combatant) => c.faction === Faction.PLAYER
+    );
     this.setState({
       phase: this.state.phase === 4 ? 0 : this.state.phase + 1,
       turn: this.state.phase === 4 ? this.state.turn + 1 : this.state.turn,
+      hoveredSquare: undefined,
       combatants: [
-        ...this.state.combatants.map(c => ({ ...c, currentPath: undefined }))
+        ...this.state.combatants.map(c => ({
+          ...c,
+          currentPath: undefined,
+          selected: c.name === (nextCombatant as Combatant).name
+        }))
       ]
     });
   };
@@ -181,10 +189,32 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     return combatants.length > 0 ? combatants[0] : null;
   };
 
+  nextCombatant = (test?: (c: Combatant) => boolean) => {
+    const combatants = this.state.combatants.filter(
+      c => !c.selected && (!test || test(c))
+    );
+    if (!combatants.length) {
+      return null;
+    }
+
+    return combatants[0];
+  };
+
+  firstCombatant = (test?: (c: Combatant) => boolean) => {
+    const combatants = this.state.combatants.filter(c => !test || test(c));
+    if (!combatants.length) {
+      return null;
+    }
+
+    return combatants[0];
+  };
 
   squareClicked = (position: Position): void => {
+    if (this.state.phase !== Phase.PLAYER_ACTIONS) {
+      return;
+    }
+
     const combatant = this.selectedCombatant();
-    console.log("clicked", combatant, position);
     if (combatant) {
       const matrix = GridService.matrix(this.state.positions);
       const path = GridService.pathBetween(
@@ -192,11 +222,15 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         combatant.position,
         position
       );
-      const nextCombatant = this.nextCombatant(c => c.faction === Faction.PLAYER)
+      const nextCombatant = this.nextCombatant(
+        c => c.faction === Faction.PLAYER && !c.currentPath
+      );
+      console.log(combatant.name, nextCombatant ? nextCombatant.name : "none");
       this.setState({
         combatants: [
           ...this.state.combatants.map(c => ({
             ...c,
+            selected: !!(nextCombatant && nextCombatant.name === c.name),
             currentPath: c.name === combatant.name ? path : c.currentPath
           }))
         ]
@@ -204,21 +238,31 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     }
   };
 
-  squareHovered = (position?: Position): void =>
-    this.setState({
+  squareHovered = (position?: Position): void => {
+    if (this.state.phase !== Phase.PLAYER_ACTIONS) {
+      return;
+    }
+    return this.setState({
       hoveredSquare: position
     });
+  };
 
-  combatantClicked = (combatant: Combatant): void =>
-    this.setState({
+  combatantClicked = (combatant: Combatant): void => {
+    if (this.state.phase !== Phase.PLAYER_ACTIONS) {
+      return;
+    }
+
+    return this.setState({
       combatants: [
         ...this.state.combatants.map(c => ({
           ...c,
-          selected: combatant === c,
+          selected:
+            combatant === c && c.faction === Faction.PLAYER ? true : c.selected,
           currentPath: c.name === combatant.name ? undefined : c.currentPath
         }))
       ]
     });
+  };
 }
 
 export default Battlefield;
