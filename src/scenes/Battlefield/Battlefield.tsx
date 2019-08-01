@@ -13,6 +13,8 @@ import { Combatant, Faction } from "./types/combatant";
 import { GridPosition } from "./types/GridPosition";
 import { R } from "../../shared/services/R";
 import CombatLog from "./components/CombatLog/CombatLog";
+import SelectedCombatantHudLayer from "./components/layers/SelectedCombatantHudLayer/SelectedCombatantHudLayer";
+import { Component } from "react";
 
 const COMBAT_ACTION_DELAY = 300;
 export enum Phase {
@@ -257,7 +259,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
 
     const res = GridService.pathBetween(matrix, combatant.position, R.pick<
       Position
-      >(possibleSquares) as Position);
+    >(possibleSquares) as Position);
 
     return res;
   };
@@ -357,6 +359,16 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     this.init();
   };
 
+  combatantAt = (position: Position): Combatant | null => {
+    const combatants = this.state.combatants.filter(
+      c => c.position.x === position.x && c.position.y === position.y
+    );
+    if (combatants) return combatants[0];
+    return null;
+  };
+
+  parentRef = React.createRef<HTMLDivElement>();
+
   public render() {
     const {
       positions,
@@ -375,8 +387,15 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
       : null;
     const matrix = GridService.matrix(positions);
 
+    const hoveredCombatant = hoveredSquare
+      ? this.combatantAt(hoveredSquare)
+      : null;
+    console.log("HOV",hoveredCombatant,hoveredSquare);
     return (
-      <div className="battle-field m-5 flex flex-row">
+      <div
+        className="battle-field m-5 flex flex-row relative"
+        ref={this.parentRef}
+      >
         <Stage width={800} height={800}>
           <GridLayer
             positions={this.state.positions}
@@ -389,7 +408,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
           {phase === Phase.PLAYER_ACTIONS && (
             <ChosenPathsLayer combatants={combatants} />
           )}
-          {selectedCombatantPosition && (
+          {selectedCombatantPosition && !hoveredCombatant && (
             <MoveToArrowLayer
               matrix={matrix}
               hoveredSquare={hoveredSquare}
@@ -401,6 +420,13 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
             combatants={this.state.combatants}
             onClick={this.combatantClicked}
           />
+          {phase === Phase.PLAYER_ACTIONS && selectedCombatant && (
+            <SelectedCombatantHudLayer
+              combatant={selectedCombatant}
+              hoveredCombatant={hoveredCombatant}
+              parent={this.parentRef}
+            />
+          )}
         </Stage>
         <div className="flex flex-col ml-5 w-full h-full">
           <button
