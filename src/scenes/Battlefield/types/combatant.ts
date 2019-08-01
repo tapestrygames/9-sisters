@@ -16,4 +16,5 @@ export interface Combatant {
   movementRate: number;
   startingPositionRule?: PositionRuleFunc;
   currentPath?: Position[];
+  initiative?: number;
 }
