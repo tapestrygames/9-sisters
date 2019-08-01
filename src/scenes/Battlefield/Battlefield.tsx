@@ -328,7 +328,8 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
       combatants: [
         ...combatants.map((c: Combatant) => ({
           ...c,
-          selected: c.name === combatant.name
+          selected: c.name === combatant.name,
+          initiative: R.roll(100)
         }))
       ],
       phase: Phase.PLAYER_ACTIONS
@@ -367,6 +368,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
 
     combatants
       .filter((c: Combatant) => c.currentPath)
+      .sort((a: Combatant, b: Combatant) =>(a.initiative || 0) > (b.initiative || 0) ? 1 :( a.initiative || 0)  < (b.initiative || 0) ? -1 : 0)
       .forEach((combatant: Combatant) => {
         (combatant.currentPath as Position[]).forEach((pos: Position) => {
           actionQueue.push({
