@@ -3,6 +3,7 @@ import PF, { DiagonalMovement } from "pathfinding";
 import { R } from "../../../shared/services/R";
 import { Coord, Position } from "../../../shared/types/coord";
 import { Combatant } from "../types/combatant";
+import { CombatantList } from "../types/CombatantList";
 import { GridPosition } from "../types/GridPosition";
 
 export interface PathOptions {
@@ -95,7 +96,7 @@ export class GridServiceClass {
 
   public findOpenPosition(
     layout: GridPosition[][],
-    combatants: Combatant[],
+    combatants: CombatantList,
     combatant: Combatant
   ): Position {
     const openPositions: Position[] = layout.reduce((r: Position[], v) => {
@@ -103,10 +104,10 @@ export class GridServiceClass {
         ...v.reduce((rr: Position[], vv) => {
           if (
             vv.open &&
-            combatants.filter(
+            combatants.none(
               c =>
                 c.position.x === vv.position.x && c.position.y === vv.position.y
-            ).length === 0
+            )
           ) {
             rr.push(vv.position);
           }
