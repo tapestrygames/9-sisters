@@ -1,14 +1,12 @@
 import * as React from "react";
-import { Layer, Arrow } from "react-konva";
+import { Arrow, Layer } from "react-konva";
 import { GridService } from "../../../services/grid.service";
 import { Position } from "../../../../../shared/types/coord";
-import { Combatant } from "../../../types/combatant";
+import { Combatant, CombatantAction } from "../../../types/combatant";
 
 export interface MoveToArrowLayerProps {
-  hoveredSquare?: Position;
-  selectedSquare?: Position;
-  combatant?: Combatant;
-  matrix: number[][];
+  hoveredPath: Position[];
+  combatant: Combatant;
 }
 
 class MoveToArrowLayer extends React.Component<MoveToArrowLayerProps, any> {
@@ -18,38 +16,44 @@ class MoveToArrowLayer extends React.Component<MoveToArrowLayerProps, any> {
     this.state = {};
   }
 
+  arrowColors(action: CombatantAction): string {
+    switch (action) {
+      case CombatantAction.MOVE:
+        return "black";
+      case CombatantAction.ATTACK:
+        return "red";
+    }
+  }
+
   public render() {
     const {
-      matrix,
-      selectedSquare,
-      hoveredSquare,
+      hoveredPath,
       combatant
     }: MoveToArrowLayerProps = this.props;
-    const points =
-      selectedSquare && hoveredSquare
-        ? GridService.pathBetween(
-            matrix,
-            selectedSquare as Position,
-            hoveredSquare
-          ).reduce((r: number[], v: Position) => {
-            const c = GridService.toPx(v, {
-              center: true
-            });
-            r.push(c.x, c.y);
-            return r;
-          }, [])
-        : null;
+
+    const points = hoveredPath.reduce((r: number[], v: Position) => {
+          const c = GridService.toPx(v, {
+            center: true
+          });
+          r.push(c.x, c.y);
+          return r;
+        }, []);
+
     return (
       <Layer>
-        {points && combatant && points.length <= (combatant.movementRate + 1)*2 && (
-          <Arrow
-            points={points}
-            stroke="black"
-            strokeWidth={4}
-            lineJoin={"round"}
-            listening={false}
-          />
-        )}
+        {hoveredPath &&
+           (
+            <Arrow
+              points={points}
+              stroke={
+                this.arrowColors(combatant.action || CombatantAction.MOVE) ||
+                "purple"
+              }
+              strokeWidth={4}
+              lineJoin={"round"}
+              listening={false}
+            />
+          )}
       </Layer>
     );
   }

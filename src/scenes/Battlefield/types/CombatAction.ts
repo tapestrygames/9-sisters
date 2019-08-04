@@ -1,13 +1,10 @@
 import { Position } from "../../../shared/types/coord";
-import { Combatant } from "./combatant";
-
-export enum CombatActionType {
-  MOVE = "move"
-}
+import { Combatant, CombatantAction } from "./combatant";
 
 export interface CombatAction {
-  action: CombatActionType;
+  action: CombatantAction;
   combatant: Combatant;
 
   to?: Position;
+  target?: Combatant;
 }
