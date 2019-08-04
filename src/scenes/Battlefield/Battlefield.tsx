@@ -282,15 +282,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     });
     this.init();
   };
-
-  combatantAt = (position: Position): Combatant | null => {
-    const combatants = this.state.combatants.filter(
-      c => c.position.x === position.x && c.position.y === position.y
-    );
-    if (combatants) return combatants[0];
-    return null;
-  };
-
+  
   parentRef = React.createRef<HTMLDivElement>();
 
   public render() {
@@ -309,7 +301,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     const matrix = GridService.matrix(positions);
 
     const hoveredCombatant = hoveredSquare
-      ? this.combatantAt(hoveredSquare)
+      ? combatants.firstOrNull(c => c.position.x === hoveredSquare.x && c.position.y === hoveredSquare.y)
       : null;
     console.log("HOV",hoveredCombatant,hoveredSquare);
     return (
