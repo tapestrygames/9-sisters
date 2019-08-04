@@ -1,5 +1,5 @@
 import { CombatantList } from "../scenes/Battlefield/types/CombatantList";
-import { Faction } from "../scenes/Battlefield/types/combatant";
+import { CombatantShape, Faction } from "../scenes/Battlefield/types/combatant";
 import { Position } from "./types/coord";
 
 export const testCombatants: CombatantList = new CombatantList([
@@ -10,6 +10,7 @@ export const testCombatants: CombatantList = new CombatantList([
     name: "Dhrami",
     position: { x: -1, y: -1 },
     selected: true,
+    shape: CombatantShape.CIRCLE,
     startingPositionRule: (position: Position) => position.y < 5
   },
   {
@@ -18,6 +19,7 @@ export const testCombatants: CombatantList = new CombatantList([
     movementRate: 5,
     name: "Moire Caubelle",
     position: { x: -1, y: -1 },
+    shape: CombatantShape.CIRCLE,
     startingPositionRule: (position: Position) => position.y < 5
   },
   {
@@ -26,6 +28,7 @@ export const testCombatants: CombatantList = new CombatantList([
     movementRate: 2,
     name: "Troll",
     position: { x: -1, y: -1 },
+    shape: CombatantShape.SQUARE,
     startingPositionRule: (position: Position) => position.y >= 5
   },
   {
@@ -34,6 +37,7 @@ export const testCombatants: CombatantList = new CombatantList([
     movementRate: 8,
     name: "Imp",
     position: { x: -1, y: -1 },
+    shape: CombatantShape.SQUARE,
     startingPositionRule: (position: Position) => position.y >= 5
   },
   {
@@ -42,6 +46,7 @@ export const testCombatants: CombatantList = new CombatantList([
     movementRate: 4,
     name: "Skeleton",
     position: { x: -1, y: -1 },
+    shape: CombatantShape.SQUARE,
     startingPositionRule: (position: Position) => position.y >= 5
   }
 ]);

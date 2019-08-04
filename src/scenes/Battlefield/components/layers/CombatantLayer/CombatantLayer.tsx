@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Circle, Layer } from "react-konva";
-import { Combatant } from "../../../types/combatant";
+import { Circle, Layer, Rect } from "react-konva";
+import { Combatant, CombatantShape } from "../../../types/combatant";
 import { CombatantList } from "../../../types/CombatantList";
 //import { Motion, spring } from "react-motion";
 
@@ -30,7 +30,7 @@ class CombatantLayer extends React.Component<CombatantLayerProps, any> {
         {this.props.combatants.combatants.map((combatant: Combatant) => (
          // <Motion style={{x: spring(combatant.position.x*80+40),y: spring(combatant.position.y*80+40)}}>
          //   {({x, y}) =>
-              <Circle
+              combatant.shape === CombatantShape.CIRCLE ? <Circle
             key={combatant.name}
             x={combatant.position.x*80+40}
             y={combatant.position.y*80+40}
@@ -43,7 +43,21 @@ class CombatantLayer extends React.Component<CombatantLayerProps, any> {
             shadowOffsetY={5}
             strokeWidth={combatant.selected ? 5 : 1}
             onClick={() => this.clickHandler(combatant)}
-            />
+            /> :  <Rect
+                key={combatant.name}
+                x={combatant.position.x*80+15}
+                y={combatant.position.y*80+15}
+                width={50}
+                height={50}
+                fill={combatant.color}
+                stroke="black"
+                shadowEnabled={true}
+                shadowColor="darkgrey"
+                shadowOffsetX={5}
+                shadowOffsetY={5}
+                strokeWidth={combatant.selected ? 5 : 1}
+                onClick={() => this.clickHandler(combatant)}
+              />
         //}
         //  </Motion>
         ))}

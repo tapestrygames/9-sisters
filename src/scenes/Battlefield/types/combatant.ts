@@ -7,11 +7,17 @@ export enum Faction {
   ENEMY
 }
 
+export enum CombatantShape {
+  SQUARE,
+  CIRCLE
+}
+
 export interface Combatant {
   name: string;
   faction: Faction;
   position: Position;
   color: string;
+  shape: CombatantShape;
   selected?: boolean;
   movementRate: number;
   startingPositionRule?: PositionRuleFunc;
