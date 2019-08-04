@@ -1,12 +1,13 @@
 import * as React from "react";
 import { Circle, Layer } from "react-konva";
 import { Combatant } from "../../../types/combatant";
+import { CombatantList } from "../../../types/CombatantList";
 //import { Motion, spring } from "react-motion";
 
 export type OnClickFunc = (combatant: Combatant) => void;
 
 export interface CombatantLayerProps {
-  combatants: Combatant[];
+  combatants: CombatantList;
   onClick?: OnClickFunc;
 }
 
@@ -26,7 +27,7 @@ class CombatantLayer extends React.Component<CombatantLayerProps, any> {
   public render() {
     return (
       <Layer>
-        {this.props.combatants.map((combatant: Combatant) => (
+        {this.props.combatants.combatants.map((combatant: Combatant) => (
          // <Motion style={{x: spring(combatant.position.x*80+40),y: spring(combatant.position.y*80+40)}}>
          //   {({x, y}) =>
               <Circle
