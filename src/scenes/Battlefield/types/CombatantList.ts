@@ -1,3 +1,4 @@
+import { Position } from "../../../shared/types/coord";
 import { Combatant } from "./combatant";
 
 export type CombatantPredicate = (c: Combatant) => boolean;
@@ -60,6 +61,12 @@ export class CombatantList {
       throw new Error("attempt to call first on empty list");
     }
     return filteredCombatants[0];
+  }
+
+  public at(position: Position) {
+    return this.firstOrNull(
+      c => c.position.x === position.x && c.position.y === position.y
+    );
   }
 
   public firstOrNull(

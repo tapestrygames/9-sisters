@@ -1,5 +1,5 @@
 import { CombatantList } from "../scenes/Battlefield/types/CombatantList";
-import { CombatantShape, Faction } from "../scenes/Battlefield/types/combatant";
+import { CombatantAttackType, CombatantShape, Faction } from "../scenes/Battlefield/types/combatant";
 import { Position } from "./types/coord";
 
 export const testCombatants: CombatantList = new CombatantList([
@@ -11,7 +11,9 @@ export const testCombatants: CombatantList = new CombatantList([
     position: { x: -1, y: -1 },
     selected: true,
     shape: CombatantShape.CIRCLE,
-    startingPositionRule: (position: Position) => position.y < 5
+    startingPositionRule: (position: Position) => position.y < 5,
+    attackType: CombatantAttackType.MELEE,
+    attackRange: 1
   },
   {
     color: "yellow",
@@ -20,7 +22,9 @@ export const testCombatants: CombatantList = new CombatantList([
     name: "Moire Caubelle",
     position: { x: -1, y: -1 },
     shape: CombatantShape.CIRCLE,
-    startingPositionRule: (position: Position) => position.y < 5
+    startingPositionRule: (position: Position) => position.y < 5,
+    attackType: CombatantAttackType.RANGED,
+    attackRange: 8
   },
   {
     color: "green",
@@ -29,7 +33,9 @@ export const testCombatants: CombatantList = new CombatantList([
     name: "Troll",
     position: { x: -1, y: -1 },
     shape: CombatantShape.SQUARE,
-    startingPositionRule: (position: Position) => position.y >= 5
+    startingPositionRule: (position: Position) => position.y >= 5,
+    attackType: CombatantAttackType.MELEE,
+    attackRange: 1
   },
   {
     color: "red",
@@ -38,7 +44,9 @@ export const testCombatants: CombatantList = new CombatantList([
     name: "Imp",
     position: { x: -1, y: -1 },
     shape: CombatantShape.SQUARE,
-    startingPositionRule: (position: Position) => position.y >= 5
+    startingPositionRule: (position: Position) => position.y >= 5,
+    attackType: CombatantAttackType.RANGED,
+    attackRange: 6
   },
   {
     color: "grey",
@@ -47,6 +55,8 @@ export const testCombatants: CombatantList = new CombatantList([
     name: "Skeleton",
     position: { x: -1, y: -1 },
     shape: CombatantShape.SQUARE,
-    startingPositionRule: (position: Position) => position.y >= 5
+    startingPositionRule: (position: Position) => position.y >= 5,
+    attackType: CombatantAttackType.MELEE,
+    attackRange: 1
   }
 ]);

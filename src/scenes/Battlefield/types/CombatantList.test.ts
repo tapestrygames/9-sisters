@@ -72,4 +72,14 @@ describe("combatantList", () => {
       expect(() => combatants.first(c => c.name === "Ramone")).to.throw();
     });
   });
+  describe("at", () => {
+    it("should find at -1,-1", () => {
+      const c: Combatant | null = combatants.at({ x: -1, y: -1 });
+      expect(c).to.exist;
+    });
+    it("...but not at 1,1", () => {
+      const c: Combatant | null = combatants.at({ x: 1, y: 1 });
+      expect(c).to.not.exist;
+    });
+  });
 });

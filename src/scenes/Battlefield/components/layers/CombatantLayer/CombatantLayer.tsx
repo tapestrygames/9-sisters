@@ -8,7 +8,6 @@ export type OnClickFunc = (combatant: Combatant) => void;
 
 export interface CombatantLayerProps {
   combatants: CombatantList;
-  onClick?: OnClickFunc;
 }
 
 class CombatantLayer extends React.Component<CombatantLayerProps, any> {
@@ -18,11 +17,6 @@ class CombatantLayer extends React.Component<CombatantLayerProps, any> {
     this.state = {};
   }
 
-  public clickHandler(combatant: Combatant) {
-    if (this.props.onClick) {
-      this.props.onClick(combatant);
-    }
-  }
 
   public render() {
     return (
@@ -42,7 +36,7 @@ class CombatantLayer extends React.Component<CombatantLayerProps, any> {
             shadowOffsetX={5}
             shadowOffsetY={5}
             strokeWidth={combatant.selected ? 5 : 1}
-            onClick={() => this.clickHandler(combatant)}
+            listening={false}
             /> :  <Rect
                 key={combatant.name}
                 x={combatant.position.x*80+15}
@@ -55,8 +49,8 @@ class CombatantLayer extends React.Component<CombatantLayerProps, any> {
                 shadowColor="darkgrey"
                 shadowOffsetX={5}
                 shadowOffsetY={5}
+                listening={false}
                 strokeWidth={combatant.selected ? 5 : 1}
-                onClick={() => this.clickHandler(combatant)}
               />
         //}
         //  </Motion>

@@ -12,6 +12,18 @@ export enum CombatantShape {
   CIRCLE
 }
 
+export enum CombatantAttackType {
+  MELEE,
+  RANGED,
+  MYSTIC,
+  PSYCHIC
+}
+
+export enum CombatantAction {
+  MOVE,
+  ATTACK
+}
+
 export interface Combatant {
   name: string;
   faction: Faction;
@@ -23,4 +35,8 @@ export interface Combatant {
   startingPositionRule?: PositionRuleFunc;
   currentPath?: Position[];
   initiative?: number;
+  attackRange: number;
+  attackType: CombatantAttackType;
+  action?: CombatantAction;
+  target?: Combatant;
 }
