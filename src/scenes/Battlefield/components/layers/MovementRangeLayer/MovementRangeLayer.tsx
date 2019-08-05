@@ -5,8 +5,7 @@ import { Position} from "../../../../../shared/types/coord";
 import { Combatant } from "../../../types/combatant";
 
 export interface MovementRangeLayerProps {
-  combatant: Combatant;
-  matrix: number[][];
+  reachableSquares: Position[];
 }
 
 class MovementRangeLayer extends React.Component<MovementRangeLayerProps, any> {
@@ -17,10 +16,8 @@ class MovementRangeLayer extends React.Component<MovementRangeLayerProps, any> {
   }
 
   public render() {
-    const {matrix, combatant} : MovementRangeLayerProps = this.props;
-    const reachableSquares = GridService.reachableSquares(matrix, combatant.position, combatant.movementRate)
-      .map((s: Position) => GridService.toPx(s));
-
+    let {reachableSquares} : MovementRangeLayerProps = this.props;
+    reachableSquares = reachableSquares.map((s: Position) => GridService.toPx(s));
     return (
       <Layer>
         {reachableSquares.map((square: any, i) =>
