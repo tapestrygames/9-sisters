@@ -208,7 +208,6 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
 
     const hoveredCombatant = combatants.at(position);
 
-    console.log("HOV", hoveredCombatant, selectedCombatant);
 
     selectedCombatant.action = hoveredCombatant
       ? CombatantAction.ATTACK
@@ -381,6 +380,9 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     const hoveredCombatant = hoveredSquare
       ? combatants.at(hoveredSquare)
       : null;
+    const  reachableSquares = selectedCombatant ? GridService.reachableSquares(matrix, selectedCombatant.position, selectedCombatant.movementRate) : [];
+
+
     return (
       <div
         className="battle-field m-5 flex flex-row relative"
@@ -391,9 +393,13 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
             positions={this.state.positions}
             onHover={this.squareHovered}
             onClick={this.squareClicked}
+            reachableSquares={reachableSquares}
+            attackType={selectedCombatant ? selectedCombatant.attackType: undefined}
+            combatants={combatants}
+            selectedCombatant={selectedCombatant || undefined}
           />
           {selectedCombatant && (
-            <MovementRangeLayer matrix={matrix} combatant={selectedCombatant} />
+            <MovementRangeLayer reachableSquares={reachableSquares} />
           )}
           {phase === Phase.PLAYER_ACTIONS && (
             <ChosenPathsLayer combatants={combatants} />

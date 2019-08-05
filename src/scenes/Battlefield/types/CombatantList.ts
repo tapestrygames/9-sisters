@@ -63,9 +63,9 @@ export class CombatantList {
     return filteredCombatants[0];
   }
 
-  public at(position: Position) {
+  public at(position: Position, pred: CombatantPredicate = () => true) {
     return this.firstOrNull(
-      c => c.position.x === position.x && c.position.y === position.y
+      c => c.position.x === position.x && c.position.y === position.y && pred(c)
     );
   }
 
