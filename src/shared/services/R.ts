@@ -39,7 +39,7 @@ class RClass {
     return tot + m;
   }
 
-  public pick<T>(list: T[], options = { remove: false }): T {
+  public  pick<T>(list: T[], options = { remove: false }): T {
     const index = this._roll(list.length) - 1;
     const val: T = list[index];
     if (options.remove) {

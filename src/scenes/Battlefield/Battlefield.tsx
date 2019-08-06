@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Stage } from "react-konva";
-import { Position } from "../../shared/types/coord";
+import { Position, Size } from "../../shared/types/coord";
 import "./Battlefield.styl";
 import ChosenPathsLayer from "./components/layers/ChosenPathsLayer/ChosenPathsLayer";
 import CombatantLayer from "./components/layers/CombatantLayer/CombatantLayer";
@@ -9,37 +9,61 @@ import MovementRangeLayer from "./components/layers/MovementRangeLayer/MovementR
 import MoveToArrowLayer from "./components/layers/MoveToArrowLayer/MoveToArrowLayer";
 import { GridService } from "./services/grid.service";
 import { CombatAction } from "./types/CombatAction";
-import { Combatant, CombatantAction, Faction } from "./types/combatant";
-import { GridPosition } from "./types/GridPosition";
+import {
+  Combatant,
+  CombatantAction,
+  CombatantPositionMap,
+  Faction
+} from "./types/combatant";
 import { R } from "../../shared/services/R";
 import CombatLog from "./components/CombatLog/CombatLog";
 
 import SelectedCombatantHudLayer from "./components/layers/SelectedCombatantHudLayer/SelectedCombatantHudLayer";
-
-import { CombatantList } from "./types/CombatantList";
-
-import { testCombatants } from "../../shared/testdata";
+import { connect } from "react-redux";
+import {
+  CombatantState,
+  SistersState,
+  SquareState
+} from "../../store/types/SistersState";
+import {
+  getCombatantPositions,
+  getCombatants,
+  getPhase,
+  getSelectedCombatant,
+  getSquares
+} from "../../store/selectors";
+import { Square } from "./types/square";
+import { addToCombatLog, moveCombatant, setPhase } from "../../store/actions";
+import { Phase } from "./types/Phase";
 
 const COMBAT_ACTION_DELAY = 300;
-export enum Phase {
-  INIT,
-  PLAYER_ACTIONS,
-  ENEMY_ACTIONS,
-  RESOLUTION,
-  CLEANUP
-}
 
-export interface BattlefieldState {
-  positions: GridPosition[][];
-  combatants: CombatantList;
-  hoveredSquare?: Position;
-  hoveredPath?: Position[];
+export interface BattlefieldProps {
+  combatants: CombatantState;
+  selectedCombatant?: Combatant;
+  combatantPositions: CombatantPositionMap;
+  squares: SquareState;
   turn: number;
-  phase: Phase;
-  entries: string[];
+  phase: number;
+  logEntries: string[];
+  hoveredSquare?: Square;
+  hoveredPath?: Position[];
+  mapSize: Size;
+  squareSize: number;
+
+  addToCombatLog: (text: string) => void;
+  setPhase: (phase: Phase) => void;
+  moveCombatant: (combatantId: string, position: Position) => void;
+  selectCombatant: (combatantId: string) => void;
+  selectNextCombatant: (combatantId: string) => void;
+  clearPath: (combatantId: string) => void;
+  setPath: (combatantId: string, path: Position[]) => void;
+  setAction: (combatantId: string, action: CombatantAction) => void;
+  setTarget: (combatantId: string, targetId: string) => void;
+  clearHoveredPath: () => void;
 }
 
-class Battlefield extends React.Component<{}, BattlefieldState> {
+class Battlefield extends React.Component<BattlefieldProps, {}> {
   private phaseLabels = [
     "Init",
     "Player Actions",
@@ -48,41 +72,8 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     "Cleanup"
   ];
 
-  constructor(props: {}) {
+  constructor(props: BattlefieldProps) {
     super(props);
-
-    // const open: GridPosition = { open: true };
-    // const closed: GridPosition = { open: false };
-
-    const layout: GridPosition[][] = [];
-
-    for (let row = 0; row < 10; row++) {
-      const r = [];
-      for (let col = 0; col < 10; col++) {
-        r.push({
-          open: Math.random() <= 0.9 || (col === 1 && row === 2),
-          position: { x: col, y: row }
-        });
-      }
-      layout.push(r);
-    }
-
-    testCombatants.update(
-      (combatant: Combatant) =>
-        (combatant.position = GridService.findOpenPosition(
-          layout,
-          testCombatants,
-          combatant
-        ))
-    );
-
-    this.state = {
-      combatants: testCombatants,
-      phase: Phase.INIT,
-      positions: layout,
-      turn: 1,
-      entries: []
-    };
   }
 
   public componentDidMount(): void {
@@ -90,13 +81,16 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   }
 
   public drainCombatQueue = (component: Battlefield, queue: CombatAction[]) => {
-    const { combatants, entries } = component.state;
+    const {
+      combatants,
+      addToCombatLog,
+      setPhase,
+      moveCombatant
+    } = component.props;
 
     if (queue.length === 0) {
       // next phase
-      this.setState({
-        phase: Phase.CLEANUP
-      });
+      setPhase(Phase.CLEANUP);
       component.cleanup();
       return;
     }
@@ -108,17 +102,11 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
         const entry = `${action.combatant.name} [${
           action.combatant.initiative
         }] attacks ${(action.target as Combatant).name}.`;
-        component.setState({
-          entries: [...entries, entry]
-        });
+        addToCombatLog(entry);
         break;
       }
       case CombatantAction.MOVE: {
-        action.combatant.position.x = (action.to as Position).x;
-        action.combatant.position.y = (action.to as Position).y;
-        component.setState({
-          combatants: combatants
-        });
+        moveCombatant(action.combatant.name, action.to as Position);
       }
     }
 
@@ -131,46 +119,37 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   public squareClicked = (position: Position): void => {
     const {
       combatants,
-      hoveredPath: hoveredPath
-    }: BattlefieldState = this.state;
+      combatantPositions,
+      hoveredPath,
+      selectCombatant,
+      clearPath,
+      clearHoveredPath,
+      setAction,
+      setTarget,
+      setPath,
+      selectNextCombatant
+    }: BattlefieldProps = this.props;
 
-    if (this.state.phase !== Phase.PLAYER_ACTIONS) {
+    if (this.props.phase !== Phase.PLAYER_ACTIONS) {
       return;
     }
 
-    const clickedCombatant: Combatant | null = combatants.at(position);
+    const clickedCombatant: Combatant | null =
+      combatantPositions[`(${position.x},${position.y})`];
 
     const combatant = combatants.selectedCombatant;
 
     if (clickedCombatant) {
       if (clickedCombatant.faction === Faction.PLAYER) {
-        if (combatant) {
-          combatant.selected = false;
-        }
-        clickedCombatant.selected = true;
-        clickedCombatant.currentPath = undefined;
-
-        return this.setState({
-          combatants,
-          hoveredPath: undefined
-        });
+        selectCombatant(clickedCombatant.name);
+        clearPath(clickedCombatant.name);
+        clearHoveredPath();
       } else {
         if (combatant && hoveredPath) {
-          combatant.action = CombatantAction.ATTACK;
-          combatant.currentPath = hoveredPath;
-          combatant.selected = false;
-          combatant.target = clickedCombatant;
-
-          const nextCombatant = combatants.firstOrNull(
-            c => !c.selected && c.faction === Faction.PLAYER && !c.currentPath
-          );
-
-          if (nextCombatant) {
-            nextCombatant.selected = true;
-          }
-          this.setState({
-            combatants: combatants
-          });
+          setAction(combatant.name, CombatantAction.ATTACK);
+          setTarget(combatant.name, clickedCombatant.name);
+          setPath(hoveredPath);
+          selectNextCombatant(combatant.name);
         }
       }
     } else {
@@ -194,11 +173,11 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   };
 
   public squareHovered = (position: Position): void => {
-    const { combatants, positions }: BattlefieldState = this.state;
+    const { combatants, positions }: BattlefieldProps = this.props;
     const matrix = GridService.matrix(positions);
 
     let hoveredPath = undefined;
-    if (this.state.phase !== Phase.PLAYER_ACTIONS) {
+    if (this.props.phase !== Phase.PLAYER_ACTIONS) {
       return;
     }
 
@@ -207,7 +186,6 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     if (!selectedCombatant) return;
 
     const hoveredCombatant = combatants.at(position);
-
 
     selectedCombatant.action = hoveredCombatant
       ? CombatantAction.ATTACK
@@ -240,7 +218,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   };
 
   private randomMovement = (combatant: Combatant) => {
-    const { combatants, positions }: BattlefieldState = this.state;
+    const { combatants, positions }: BattlefieldProps = this.props;
     const matrix = GridService.matrix(positions);
 
     const possibleSquares: Position[] = GridService.reachableSquares(
@@ -259,7 +237,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   // states
 
   private init = () => {
-    const { combatants }: BattlefieldState = this.state;
+    const { combatants }: BattlefieldProps = this.props;
     const combatant: Combatant = combatants.first(
       c => c.faction === Faction.PLAYER
     );
@@ -288,11 +266,14 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   };
 
   private enemyActions = () => {
-    const { combatants }: BattlefieldState = this.state;
+    const { combatants }: BattlefieldProps = this.props;
 
     combatants
       .filter(c => c.faction == Faction.ENEMY)
-      .update(c => {c.currentPath = this.randomMovement(c); c.action = CombatantAction.MOVE});
+      .update(c => {
+        c.currentPath = this.randomMovement(c);
+        c.action = CombatantAction.MOVE;
+      });
     this.setState(
       {
         hoveredSquare: undefined,
@@ -306,7 +287,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   };
 
   private resolution = () => {
-    const { combatants }: BattlefieldState = this.state;
+    const { combatants }: BattlefieldProps = this.props;
     const actionQueue: CombatAction[] = [];
 
     combatants
@@ -347,14 +328,14 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   };
 
   private cleanup = () => {
-    const { combatants }: BattlefieldState = this.state;
+    const { combatants }: BattlefieldProps = this.props;
 
     combatants.update(c => (c.currentPath = undefined));
 
     this.setState({
       combatants,
       phase: Phase.INIT,
-      turn: this.state.turn + 1
+      turn: this.props.turn + 1
     });
     this.init();
   };
@@ -369,8 +350,8 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
       combatants,
       turn,
       phase,
-      entries
-    }: BattlefieldState = this.state;
+      logEntries
+    }: BattlefieldProps = this.props;
     const selectedCombatant = combatants.selectedCombatant;
     const selectedCombatantPosition: Position | null = selectedCombatant
       ? selectedCombatant.position
@@ -380,8 +361,13 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
     const hoveredCombatant = hoveredSquare
       ? combatants.at(hoveredSquare)
       : null;
-    const  reachableSquares = selectedCombatant ? GridService.reachableSquares(matrix, selectedCombatant.position, selectedCombatant.movementRate) : [];
-
+    const reachableSquares = selectedCombatant
+      ? GridService.reachableSquares(
+          matrix,
+          selectedCombatant.position,
+          selectedCombatant.movementRate
+        )
+      : [];
 
     return (
       <div
@@ -390,11 +376,13 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
       >
         <Stage width={800} height={800}>
           <GridLayer
-            positions={this.state.positions}
+            positions={this.props.positions}
             onHover={this.squareHovered}
             onClick={this.squareClicked}
             reachableSquares={reachableSquares}
-            attackType={selectedCombatant ? selectedCombatant.attackType: undefined}
+            attackType={
+              selectedCombatant ? selectedCombatant.attackType : undefined
+            }
             combatants={combatants}
             selectedCombatant={selectedCombatant || undefined}
           />
@@ -404,7 +392,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
           {phase === Phase.PLAYER_ACTIONS && (
             <ChosenPathsLayer combatants={combatants} />
           )}
-          <CombatantLayer combatants={this.state.combatants} />
+          <CombatantLayer combatants={this.props.combatants} />
           {selectedCombatant && hoveredPath && (
             <MoveToArrowLayer
               hoveredPath={hoveredPath}
@@ -427,7 +415,7 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
             Go
           </button>
           <div className="mt-5">Turn: {turn}</div>
-          <CombatLog entries={entries} />
+          <CombatLog logEntries={logEntries} />
         </div>
       </div>
     );
@@ -438,4 +426,23 @@ class Battlefield extends React.Component<{}, BattlefieldState> {
   }
 }
 
-export default Battlefield;
+export const BattlefieldContainer = connect(
+  (state: SistersState, ownProps) => ({
+    combatants: state.combatants,
+    selectedCombatant: getSelectedCombatant(state),
+    combatantPositions: getCombatantPositions(state),
+    squares: getSquares(state),
+    phase: getPhase(state)
+  }),
+  {
+    addToCombatLog,
+    setPhase,
+    moveCombatant,
+    setAction,
+    setTarget,
+    setPath,
+    selectNextCombatant
+  }
+);
+
+export default BattlefieldContainer;

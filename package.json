@@ -23,10 +23,13 @@
     "react-fontawesome": "^1.6.1",
     "react-konva": "latest",
     "react-motion": "^0.5.2",
-    "react-redux": "latest",
+    "react-redux": "^7.1.0",
     "react-router-dom": "latest",
     "react-scripts": "3.0.1",
-    "tailwindcss": "^1.0.5"
+    "redux": "^4.0.4",
+    "reselect": "^4.0.0",
+    "tailwindcss": "^1.0.5",
+    "typesafe-actions": "^4.4.2"
   },
   "scripts": {
     "tailwind:css": "tailwind build src/css/tailwind.src.css -c  tailwind.js -o src/css/tailwind.css",

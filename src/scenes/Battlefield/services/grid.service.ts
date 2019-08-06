@@ -5,6 +5,7 @@ import { Coord, Position } from "../../../shared/types/coord";
 import { Combatant } from "../types/combatant";
 import { CombatantList } from "../types/CombatantList";
 import { GridPosition } from "../types/GridPosition";
+import { Square } from "../types/square";
 
 export interface PathOptions {
   allowDiagonal?: boolean;
@@ -95,38 +96,21 @@ export class GridServiceClass {
   }
 
   public findOpenPosition(
-    layout: GridPosition[][],
-    combatants: CombatantList,
+    layout: Square[],
+    combatants: Combatant[],
     combatant: Combatant
-  ): Position {
-    const openPositions: Position[] = layout.reduce((r: Position[], v) => {
-      r.push(
-        ...v.reduce((rr: Position[], vv) => {
-          if (
-            vv.open &&
-            combatants.none(
-              c =>
-                c.position.x === vv.position.x && c.position.y === vv.position.y
-            )
-          ) {
-            rr.push(vv.position);
-          }
-          return rr;
-        }, [])
-      );
-      return r;
-    }, []);
-    for (let cnt = 0; cnt < 1000; cnt++) {
-      const pos = R.pick(openPositions);
-      if (
-        !combatant.startingPositionRule ||
-        combatant.startingPositionRule(pos)
-      ) {
-        return pos;
+  ): Square {
+    return R.pick<Square>(layout.filter(
+      (square: Square) =>
+        square.open &&
+        combatants.filter(
+          c =>
+            c.position.x === square.position.x &&
+            c.position.y === square.position.y
+        ).length == 0 &&
+        (combatant.startingPositionRule || (() => true))(square.position)
+    ));
       }
-    }
-    return { x: -1, y: -1 };
-  }
 }
 
 export const GridService = new GridServiceClass();

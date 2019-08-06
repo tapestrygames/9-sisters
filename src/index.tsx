@@ -7,18 +7,24 @@ import "./css/tailwind.css";
 
 import { Provider } from "react-redux";
 import { createStore } from "redux";
-import rootReducers from "./store/reducers/reducers";
+import rootReducer from "./store/reducers/reducers";
 import {
+  Combatant,
   CombatantAttackType,
   CombatantShape,
   Faction
 } from "./scenes/Battlefield/types/combatant";
 import { Position } from "./shared/types/coord";
+import { SistersState } from "./store/types/SistersState";
+import { GridPosition } from "./scenes/Battlefield/types/GridPosition";
+import { R } from "./shared/services/R";
+import { testCombatants } from "./shared/testdata";
+import { GridService } from "./scenes/Battlefield/services/grid.service";
+import { Phase } from "./scenes/Battlefield/types/Phase";
 
-
-const initialStore : SistersStore = {
+const initialStore: SistersState = {
   combatants: {
-    "Dhrami": {
+    Dhrami: {
       color: "blue",
       faction: Faction.PLAYER,
       movementRate: 5,
@@ -74,8 +80,31 @@ const initialStore : SistersStore = {
       attackType: CombatantAttackType.MELEE,
       attackRange: 1
     }
-  }
+  },
+  squares: {},
+  turn: 1,
+  phase: Phase.INIT,
+  logEntries: [],
+  mapSize: { w: 10, h: 10 },
+  squareSize: 80
 };
+
+initialStore.squares = new Array(100).reduce((r, v, i) => {
+  r[`(${Math.trunc(i / 10)},${i % 10})`] = {
+    open: R.pct(90),
+    position: { x: Math.trunc(i / 10), y: i % 10 }
+  };
+  return r;
+}, {});
+
+Object.values(initialStore.combatants).forEach(
+  (combatant: Combatant) =>
+    (combatant.position = GridService.findOpenPosition(
+      Object.values(initialStore.squares),
+      Object.values(initialStore.combatants),
+      combatant
+    ).position)
+);
 
 const store = createStore(rootReducer, initialStore);
 

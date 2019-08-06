@@ -40,3 +40,6 @@ export interface Combatant {
   action?: CombatantAction;
   target?: Combatant;
 }
+
+export type CombatantPositionMap = {[id:string]: Combatant};
+
