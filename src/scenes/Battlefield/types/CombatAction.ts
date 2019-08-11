@@ -6,5 +6,5 @@ export interface CombatAction {
   combatant: Combatant;
 
   to?: Position;
-  target?: Combatant;
+  targetId?: string;
 }

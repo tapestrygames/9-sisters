@@ -3,10 +3,9 @@ import { Layer, Arrow } from "react-konva";
 import { GridService } from "../../../services/grid.service";
 import { Position } from "../../../../../shared/types/coord";
 import { Combatant } from "../../../types/combatant";
-import { CombatantList } from "../../../types/CombatantList";
 
 export interface ChosenPathsLayerProps {
-  combatants: CombatantList;
+  combatants: Combatant[];
 }
 
 class ChosenPathsLayer extends React.Component<ChosenPathsLayerProps, any> {
@@ -21,8 +20,8 @@ class ChosenPathsLayer extends React.Component<ChosenPathsLayerProps, any> {
     return (
       <Layer>
         {combatants
-          .filter(c => !!c.currentPath)
-          .combatants.map(combatant => (
+          .filter((c:Combatant) => !!c.currentPath)
+          .map((combatant: Combatant) => (
             <Arrow
               key={combatant.name}
               points={(combatant.currentPath as Position[]).reduce(

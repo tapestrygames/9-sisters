@@ -22,6 +22,8 @@ class MoveToArrowLayer extends React.Component<MoveToArrowLayerProps, any> {
         return "black";
       case CombatantAction.ATTACK:
         return "red";
+      case CombatantAction.NONE:
+        return "white";
     }
   }
 

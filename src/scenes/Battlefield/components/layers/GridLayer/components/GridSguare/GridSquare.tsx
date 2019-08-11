@@ -5,7 +5,7 @@ import bullseye from "../../../../../../../css/images/bullseye-arrow-solid.svg";
 import shoeprint from "../../../../../../../css/images/shoe-prints-regular.svg";
 import times from "../../../../../../../css/images/times-solid.svg";
 import sword from "../../../../../../../css/images/sword-solid.svg";
-import { CombatantAction, CombatantAttackType } from "../../../../../types/combatant";
+import { CombatantAttackType } from "../../../../../types/combatant";
 
 const SQUARE_SIZE = 80;
 

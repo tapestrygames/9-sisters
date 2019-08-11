@@ -16,6 +16,9 @@
     "@types/node": "^12.6.8",
     "@types/react": "^16.8.23",
     "@types/react-dom": "^16.8.5",
+    "@types/redux-logger": "^3.0.7",
+    "@types/redux-thunk": "^2.1.0",
+    "@types/remote-redux-devtools": "^0.5.3",
     "konva": "^3.4.1",
     "pathfinding": "^0.4.18",
     "react": "^16.8.6",
@@ -23,10 +26,16 @@
     "react-fontawesome": "^1.6.1",
     "react-konva": "latest",
     "react-motion": "^0.5.2",
-    "react-redux": "latest",
+    "react-redux": "^7.1.0",
     "react-router-dom": "latest",
     "react-scripts": "3.0.1",
-    "tailwindcss": "^1.0.5"
+    "redux": "^4.0.4",
+    "redux-devtools-extension": "^2.13.8",
+    "redux-logger": "^3.0.6",
+    "redux-thunk": "^2.3.0",
+    "reselect": "^4.0.0",
+    "tailwindcss": "^1.0.5",
+    "typesafe-actions": "^4.4.2"
   },
   "scripts": {
     "tailwind:css": "tailwind build src/css/tailwind.src.css -c  tailwind.js -o src/css/tailwind.css",
