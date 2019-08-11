@@ -3,7 +3,6 @@ import PF, { DiagonalMovement } from "pathfinding";
 import { R } from "../../../shared/services/R";
 import { Coord, Position } from "../../../shared/types/coord";
 import { Combatant } from "../types/combatant";
-import { CombatantList } from "../types/CombatantList";
 import { GridPosition } from "../types/GridPosition";
 import { Square } from "../types/square";
 
@@ -100,17 +99,19 @@ export class GridServiceClass {
     combatants: Combatant[],
     combatant: Combatant
   ): Square {
-    return R.pick<Square>(layout.filter(
-      (square: Square) =>
-        square.open &&
-        combatants.filter(
-          c =>
-            c.position.x === square.position.x &&
-            c.position.y === square.position.y
-        ).length == 0 &&
-        (combatant.startingPositionRule || (() => true))(square.position)
-    ));
-      }
+    return R.pick<Square>(
+      layout.filter(
+        (square: Square) =>
+          square.open &&
+          combatants.filter(
+            c =>
+              c.position.x === square.position.x &&
+              c.position.y === square.position.y
+          ).length === 0 &&
+          (combatant.startingPositionRule || (() => true))(square.position)
+      )
+    );
+  }
 }
 
 export const GridService = new GridServiceClass();

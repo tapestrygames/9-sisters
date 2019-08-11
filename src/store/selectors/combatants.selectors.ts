@@ -1,9 +1,10 @@
-import { CombatantState, SistersState } from "../types/SistersState";
+import { createSelector, Selector } from "reselect";
 import {
   Combatant,
-  CombatantPositionMap
+  CombatantPositionMap,
+  Faction
 } from "../../scenes/Battlefield/types/combatant";
-import { createSelector, Selector } from "reselect";
+import { CombatantState, SistersState } from "../types/SistersState";
 
 export const getCombatants: Selector<SistersState, CombatantState> = (
   state: SistersState
@@ -21,14 +22,14 @@ export const getCombatantList = createSelector<
 export const getSelectedCombatant = createSelector<
   SistersState,
   Combatant[],
-  Combatant | null
+  Combatant | undefined
 >(
   [getCombatantList],
-  (combatants: Combatant[]) => {
+  (combatants: Combatant[]): Combatant | undefined => {
     const selected: Combatant[] = combatants.filter(
       (c: Combatant) => c.selected
     );
-    return selected.length > 0 ? selected[0] : null;
+    return selected.length > 0 ? selected[0] : undefined;
   }
 );
 
@@ -43,4 +44,24 @@ export const getCombatantPositions = createSelector<
       r[`(${v.position.x},${v.position.y})`] = v;
       return r;
     }, {})
+);
+
+export const getPlayers = createSelector<
+  SistersState,
+  Combatant[],
+  Combatant[]
+>(
+  [getCombatantList],
+  (combatants: Combatant[]) =>
+    combatants.filter(c => c.faction === Faction.PLAYER)
+);
+
+export const getEnemies = createSelector<
+  SistersState,
+  Combatant[],
+  Combatant[]
+>(
+  [getCombatantList],
+  (combatants: Combatant[]) =>
+    combatants.filter(c => c.faction === Faction.ENEMY)
 );

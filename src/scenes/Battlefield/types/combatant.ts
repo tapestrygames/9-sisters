@@ -20,6 +20,7 @@ export enum CombatantAttackType {
 }
 
 export enum CombatantAction {
+  NONE,
   MOVE,
   ATTACK
 }
@@ -37,9 +38,10 @@ export interface Combatant {
   initiative?: number;
   attackRange: number;
   attackType: CombatantAttackType;
-  action?: CombatantAction;
-  target?: Combatant;
+  action: CombatantAction;
+  targetId?: string;
 }
 
-export type CombatantPositionMap = {[id:string]: Combatant};
-
+export interface CombatantPositionMap {
+  [id: string]: Combatant;
+}

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Layer, Rect } from "react-konva";
+import { Layer } from "react-konva";
 import { GridService } from "../../../services/grid.service";
 import { Combatant } from "../../../types/combatant";
 import Portal from "../../../../../shared/components/Portal/Portal";

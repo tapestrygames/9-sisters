@@ -2,15 +2,15 @@ import React, { Component } from "react";
 import "./CombatLog.css";
 
 export interface CombatLogProps {
-  entries: string[]
+  logEntries: string[]
 }
 
 class CombatLog extends Component<CombatLogProps, {}> {
   public render() {
-    const { entries} = this.props;
+    const { logEntries} = this.props;
     return (
       <div className="combat-log">
-        {entries.map((e,i) => <div key={i}>{e}</div>)}
+        {logEntries.map((e,i) => <div key={i}>{e}</div>)}
       </div>
     );
   }

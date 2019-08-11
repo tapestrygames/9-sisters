@@ -3,12 +3,12 @@ import { BrowserRouter, Route } from "react-router-dom";
 // import logo from './logo.svg';
 import "./App.styl";
 
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { faShoePrints, faTimes } from '@fortawesome/free-solid-svg-icons'
-import { faBullseyeArrow , faSword } from '@fortawesome/pro-solid-svg-icons'
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faShoePrints, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faBullseyeArrow, faSword } from "@fortawesome/pro-solid-svg-icons";
 
 import MainMenu from "./shared/components/MainMenu/MainMenu";
-import Battlefield from "./scenes/Battlefield/Battlefield";
+import BattlefieldContainer from "./scenes/Battlefield/BattlefieldContainer";
 
 library.add(faBullseyeArrow, faSword, faShoePrints, faTimes);
 
@@ -17,7 +17,7 @@ function App() {
     <BrowserRouter>
       <div className="app">
         <Route path="/(.+)" render={props => <MainMenu {...props} />} />
-        <Route path="/battle" component={Battlefield}/>
+        <Route path="/battle" component={BattlefieldContainer} />
       </div>
     </BrowserRouter>
   );

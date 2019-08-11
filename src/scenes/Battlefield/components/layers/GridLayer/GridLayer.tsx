@@ -1,22 +1,23 @@
 import * as React from "react";
 import { Layer } from "react-konva";
-import { GridPosition } from "../../../types/GridPosition";
 import GridSquare from "./components/GridSguare/GridSquare";
-import { Position} from "../../../../../shared/types/coord";
-import { CombatantList } from "../../../types/CombatantList";
-import { Combatant, CombatantAttackType, Faction } from "../../../types/combatant";
+import { Position } from "../../../../../shared/types/coord";
+import {
+  Combatant,
+  CombatantAttackType
+} from "../../../types/combatant";
+import { Square } from "../../../types/square";
 
-export type OnHoverFunc = (position:Position) => void;
-export type OnClickFunc = (position:Position) => void;
+export type OnHoverFunc = (position: Position) => void;
+export type OnClickFunc = (position: Position) => void;
 
 interface GridLayerProps {
-  positions: GridPosition[][];
+  positions: Square[][];
   onHover?: OnHoverFunc;
   onClick?: OnClickFunc;
-  combatants: CombatantList;
   selectedCombatant?: Combatant;
   reachableSquares: Position[];
-  attackType?: CombatantAttackType
+  attackType?: CombatantAttackType;
 }
 
 class GridLayer extends React.Component<GridLayerProps, any> {
@@ -27,7 +28,14 @@ class GridLayer extends React.Component<GridLayerProps, any> {
   }
 
   public render() {
-    const { onHover, onClick, positions, reachableSquares, combatants, selectedCombatant, attackType}: GridLayerProps = this.props;
+    const {
+      onHover,
+      onClick,
+      positions,
+      reachableSquares,
+      selectedCombatant,
+      attackType
+    }: GridLayerProps = this.props;
     return (
       <Layer>
         {positions.map((row, rowIndex) =>
@@ -37,13 +45,32 @@ class GridLayer extends React.Component<GridLayerProps, any> {
               square={col}
               row={rowIndex}
               col={colIndex}
-              reachable={reachableSquares.filter(s => s.x===colIndex && s.y===rowIndex).length>0}
-              occupied={!!combatants.at({x: colIndex, y:rowIndex})}
-              enemy={!!combatants.at({x: colIndex, y:rowIndex}, (c) => c.faction === Faction.ENEMY)}
+              reachable={
+                reachableSquares.filter(
+                  s => s.x === colIndex && s.y === rowIndex
+                ).length > 0
+              }
+              occupied={col.occupied}
+              enemy={col.enemy}
               attackType={attackType}
-              inRange={selectedCombatant ? this.dist(selectedCombatant.position,{x: colIndex,y: rowIndex})<=selectedCombatant.attackRange : false}
-              onClick={() => {if (onClick) { onClick({x: colIndex, y:rowIndex})}}}
-              onHover={() => {if (onHover) { onHover({x: colIndex, y: rowIndex})}}}
+              inRange={
+                selectedCombatant
+                  ? this.dist(selectedCombatant.position, {
+                      x: colIndex,
+                      y: rowIndex
+                    }) <= selectedCombatant.attackRange
+                  : false
+              }
+              onClick={() => {
+                if (onClick) {
+                  onClick({ x: colIndex, y: rowIndex });
+                }
+              }}
+              onHover={() => {
+                if (onHover) {
+                  onHover({ x: colIndex, y: rowIndex });
+                }
+              }}
             />
           ))
         )}
@@ -53,7 +80,6 @@ class GridLayer extends React.Component<GridLayerProps, any> {
   private dist(c1: Position, c2: Position): number {
     return Math.abs(Math.hypot(c2.x - c1.x, c2.y - c1.y));
   }
-
 }
 
 export default GridLayer;
