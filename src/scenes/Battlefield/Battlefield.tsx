@@ -1,7 +1,9 @@
 import * as React from "react";
 import { Stage } from "react-konva";
+import { R } from "../../shared/services/R";
 import { Position, Size } from "../../shared/types/coord";
 import "./Battlefield.styl";
+import CombatLog from "./components/CombatLog/CombatLog";
 import ChosenPathsLayer from "./components/layers/ChosenPathsLayer/ChosenPathsLayer";
 import CombatantLayer from "./components/layers/CombatantLayer/CombatantLayer";
 import GridLayer from "./components/layers/GridLayer/GridLayer";
@@ -15,21 +17,18 @@ import {
   CombatantPositionMap,
   Faction
 } from "./types/combatant";
-import { R } from "../../shared/services/R";
-import CombatLog from "./components/CombatLog/CombatLog";
 
-import SelectedCombatantHudLayer from "./components/layers/SelectedCombatantHudLayer/SelectedCombatantHudLayer";
-import { CombatantState, SquareState } from "../../store/types/SistersState";
-import { Square } from "./types/square";
-import { Phase } from "./types/Phase";
 import {
   MoveCombatantPayload,
   SetActionPayload,
   SetPathPayload,
   SetTargetPayload,
-  updateCombatant,
   UpdateCombatantPayload
 } from "../../store/actions";
+import { CombatantState, SquareState } from "../../store/types/SistersState";
+import SelectedCombatantHudLayer from "./components/layers/SelectedCombatantHudLayer/SelectedCombatantHudLayer";
+import { Phase } from "./types/Phase";
+import { Square } from "./types/square";
 
 const COMBAT_ACTION_DELAY = 300;
 
@@ -70,6 +69,8 @@ export interface BattlefieldProps {
 }
 
 class Battlefield extends React.Component<BattlefieldProps, {}> {
+
+  public parentRef = React.createRef<HTMLDivElement>();
   private phaseLabels = [
     "Init",
     "Player Actions",
@@ -182,12 +183,12 @@ class Battlefield extends React.Component<BattlefieldProps, {}> {
       setHoveredSquare
     }: BattlefieldProps = this.props;
 
-    let hoveredPath = undefined;
+    let hoveredPath;
     if (phase !== Phase.PLAYER_ACTIONS) {
       return;
     }
 
-    if (!selectedCombatant) return;
+    if (!selectedCombatant) { return; }
 
     const hoveredCombatant =
       combatantPositions[`(${position.x},${position.y})`];
@@ -206,6 +207,7 @@ class Battlefield extends React.Component<BattlefieldProps, {}> {
         hoveredPath = [selectedCombatant.position, position];
       }
     } else {
+      console.log("SC",selectedCombatant)
       const points = GridService.pathBetween(
         matrix,
         selectedCombatant.position as Position,
@@ -221,51 +223,7 @@ class Battlefield extends React.Component<BattlefieldProps, {}> {
     } else {
       clearHoveredPath();
     }
-    setHoveredSquare(squares[`(${position.x},${position.y})`]);
-  };
-
-  private randomMovement = (combatant: Combatant) => {
-    const { matrix }: BattlefieldProps = this.props;
-
-    const possibleSquares: Position[] = GridService.reachableSquares(
-      matrix,
-      combatant.position,
-      combatant.movementRate
-    );
-
-    return GridService.pathBetween(matrix, combatant.position, R.pick<Position>(
-      possibleSquares
-    ) as Position);
-  };
-
-  // states
-
-  private init = () => {
-    const {
-      players,
-      combatantsList,
-      updateCombatant,
-      clearHoveredPath,
-      clearHoveredSquare,
-      setPhase
-    }: BattlefieldProps = this.props;
-    const combatant: Combatant | null = players.length > 0 ? players[0] : null;
-
-    combatantsList.forEach((c: Combatant) => {
-      updateCombatant({
-        combatantId: c.name,
-        data: {
-          initiative: R.roll(100),
-          selected: combatant && combatant.name === c.name,
-          target: undefined,
-          action: undefined,
-          currentPath: []
-        }
-      });
-    });
-    clearHoveredPath();
-    clearHoveredSquare();
-    setPhase(Phase.PLAYER_ACTIONS);
+    setHoveredSquare(squares.squares[`(${position.x},${position.y})`]);
   };
 
   public completePlayerActions = () => {
@@ -275,85 +233,6 @@ class Battlefield extends React.Component<BattlefieldProps, {}> {
 
     this.enemyActions();
   };
-
-  private enemyActions = () => {
-    const {
-      enemies,
-      clearHoveredSquare,
-      updateCombatant,
-      setPhase
-    }: BattlefieldProps = this.props;
-
-    enemies.forEach(c => {
-      updateCombatant({
-        combatantId: c.name,
-        data: {
-          currentPath: this.randomMovement(c),
-          action: CombatantAction.MOVE
-        }
-      });
-    });
-    clearHoveredSquare();
-    setPhase(Phase.RESOLUTION);
-    window.setTimeout(() => this.resolution(), 1);
-  };
-
-  private resolution = () => {
-    const { combatantsList }: BattlefieldProps = this.props;
-    const actionQueue: CombatAction[] = [];
-
-    combatantsList
-      .filter((c: Combatant) => !!c.currentPath)
-      .sort((a: Combatant, b: Combatant) =>
-        (a.initiative || 0) < (b.initiative || 0)
-          ? 1
-          : (a.initiative || 0) > (b.initiative || 0)
-          ? -1
-          : 0
-      )
-      .forEach((combatant: Combatant) => {
-        switch (combatant.action) {
-          case CombatantAction.MOVE: {
-            (combatant.currentPath as Position[]).forEach((pos: Position) => {
-              actionQueue.push({
-                action: CombatantAction.MOVE,
-                combatant,
-                to: pos
-              });
-            });
-            break;
-          }
-          case CombatantAction.ATTACK: {
-            actionQueue.push({
-              action: CombatantAction.ATTACK,
-              combatant,
-              targetId: combatant.targetId
-            });
-            break;
-          }
-        }
-      });
-    setTimeout(
-      () => this.drainCombatQueue(this, actionQueue),
-      COMBAT_ACTION_DELAY
-    );
-  };
-
-  private cleanup = () => {
-    const {
-      combatantsList,
-      clearPath,
-      incTurn,
-      setPhase
-    }: BattlefieldProps = this.props;
-
-    combatantsList.forEach(({ name }) => clearPath(name));
-    setPhase(Phase.INIT);
-    incTurn();
-    this.init();
-  };
-
-  parentRef = React.createRef<HTMLDivElement>();
 
   public render() {
     const {
@@ -434,6 +313,127 @@ class Battlefield extends React.Component<BattlefieldProps, {}> {
       </div>
     );
   }
+
+  private randomMovement = (combatant: Combatant) => {
+    const { matrix }: BattlefieldProps = this.props;
+
+    const possibleSquares: Position[] = GridService.reachableSquares(
+      matrix,
+      combatant.position,
+      combatant.movementRate
+    );
+
+    return GridService.pathBetween(matrix, combatant.position, R.pick<Position>(
+      possibleSquares
+    ) as Position);
+  };
+
+  // states
+
+  private init = () => {
+    const {
+      players,
+      combatantsList,
+      updateCombatant,
+      clearHoveredPath,
+      clearHoveredSquare,
+      setPhase
+    }: BattlefieldProps = this.props;
+    const combatant: Combatant | null = players.length > 0 ? players[0] : null;
+
+    combatantsList.forEach((c: Combatant) => {
+      updateCombatant({
+        combatantId: c.name,
+        data: {
+          initiative: R.roll(100),
+          selected: combatant && combatant.name === c.name,
+          target: undefined,
+          action: undefined,
+          currentPath: []
+        }
+      });
+    });
+    clearHoveredPath();
+    clearHoveredSquare();
+    setPhase(Phase.PLAYER_ACTIONS);
+  };
+
+  private enemyActions = () => {
+    const {
+      enemies,
+      clearHoveredSquare,
+      updateCombatant,
+      setPhase
+    }: BattlefieldProps = this.props;
+
+    enemies.forEach(c => {
+      updateCombatant({
+        combatantId: c.name,
+        data: {
+          currentPath: this.randomMovement(c),
+          action: CombatantAction.MOVE
+        }
+      });
+    });
+    clearHoveredSquare();
+    setPhase(Phase.RESOLUTION);
+    window.setTimeout(() => this.resolution(), 1);
+  };
+
+  private resolution = () => {
+    const { combatantsList }: BattlefieldProps = this.props;
+    const actionQueue: CombatAction[] = [];
+
+    combatantsList
+      .filter((c: Combatant) => !!c.currentPath)
+      .sort((a: Combatant, b: Combatant) =>
+        (a.initiative || 0) < (b.initiative || 0)
+          ? 1
+          : (a.initiative || 0) > (b.initiative || 0)
+          ? -1
+          : 0
+      )
+      .forEach((combatant: Combatant) => {
+        switch (combatant.action) {
+          case CombatantAction.MOVE: {
+            (combatant.currentPath as Position[]).forEach((pos: Position) => {
+              actionQueue.push({
+                action: CombatantAction.MOVE,
+                combatant,
+                to: pos
+              });
+            });
+            break;
+          }
+          case CombatantAction.ATTACK: {
+            actionQueue.push({
+              action: CombatantAction.ATTACK,
+              combatant,
+              targetId: combatant.targetId
+            });
+            break;
+          }
+        }
+      });
+    setTimeout(
+      () => this.drainCombatQueue(this, actionQueue),
+      COMBAT_ACTION_DELAY
+    );
+  };
+
+  private cleanup = () => {
+    const {
+      combatantsList,
+      clearPath,
+      incTurn,
+      setPhase
+    }: BattlefieldProps = this.props;
+
+    combatantsList.forEach(({ name }) => clearPath(name));
+    setPhase(Phase.INIT);
+    incTurn();
+    this.init();
+  };
 
   private dist(c1: Position, c2: Position): number {
     return Math.abs(Math.hypot(c2.x - c1.x, c2.y - c1.y));

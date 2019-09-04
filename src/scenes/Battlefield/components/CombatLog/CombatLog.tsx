@@ -10,7 +10,7 @@ class CombatLog extends Component<CombatLogProps, {}> {
     const { logEntries} = this.props;
     return (
       <div className="combat-log">
-        {logEntries.map((e,i) => <div key={i}>{e}</div>)}
+        {(logEntries || []).map((e, i) => <div key={i}>{e}</div>)}
       </div>
     );
   }
