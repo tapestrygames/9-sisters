@@ -32,11 +32,11 @@ export const getGrid = createSelector<
     const res = new Array(mapSize.h)
       .fill(0)
       .map(() => new Array(mapSize.w).fill(0));
-    Object.values(squares).forEach((square: Square) => {
+    Object.values(squares.squares).forEach((square: Square) => {
       const combatant =
         combatantPositions[`($square.position.x},${square.position.y})`];
 
-      return (res[square.position.y][square.position.x] = {
+      return (res[square.position.x][square.position.y] = {
         ...square,
         enemy: combatant && combatant.faction === Faction.ENEMY,
         occupied: !!combatant
@@ -49,7 +49,7 @@ export const getGrid = createSelector<
 export const getSquare = createSelector<SistersState, SquareState, Square>(
   [getSquares],
   (squares: SquareState, props: any) =>
-    squares[`(${props.position.x},${props.position.y})`]
+    squares.squares[`(${props.position.x},${props.position.y})`]
 );
 
 export const getMatrix = createSelector<SistersState, Square[][], number[][]>(

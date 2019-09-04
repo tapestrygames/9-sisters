@@ -7,7 +7,8 @@ export interface CombatantState {
 }
 
 export interface SquareState {
-  [id: string]: Square;
+  size: Size;
+  squares: { [id: string]: Square };
 }
 
 export interface TimekeeperState {
